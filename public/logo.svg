@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" width="100%" height="100%">
+  <!-- Letter V (Black) -->
+  <path d="M 60 40 L 155 40 L 225 240 L 175 240 Z" fill="#000000" />
+  <path d="M 270 40 L 175 240 L 225 240 Z" fill="#000000" />
+
+  <!-- Letter W (Electric Royal Blue #0052FF) -->
+  <path d="M 215 40 L 265 40 L 310 180 L 355 40 L 405 40 L 335 240 L 285 240 Z" fill="#0052FF" />
+
+  <!-- Text VISION WEB -->
+  <text x="60" y="290" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" letter-spacing="12" fill="#000000">VISION</text>
+  <text x="315" y="290" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" letter-spacing="12" fill="#0052FF">WEB</text>
+</svg>

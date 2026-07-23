@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-blue: #0052FF;
+    --brand-blue-glow: rgba(0, 82, 255, 0.35);
+  }
+  
+  body {
+    @apply bg-[#07090e] text-slate-100 antialiased selection:bg-[#0052FF] selection:text-white font-sans;
+  }
+}
+
+/* Custom Premium UI Utilities */
+.glass-panel {
+  background: rgba(13, 18, 30, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(17, 24, 39, 0.9);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 82, 255, 0.25);
+  transform: translateY(-6px) scale(1.015);
+}
+
+.glow-button {
+  background: linear-gradient(135deg, #0052FF 0%, #0040C9 100%);
+  box-shadow: 0 4px 20px rgba(0, 82, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.glow-button:hover {
+  background: linear-gradient(135deg, #1A64FF 0%, #0052FF 100%);
+  box-shadow: 0 8px 30px rgba(0, 82, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Background Animated Gradient Mesh */
+.hero-gradient-mesh {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(0, 82, 255, 0.25) 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(37, 211, 102, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+  animation: mesh-move 12s ease-in-out infinite alternate;
+}
+
+@keyframes mesh-move {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* Keyframe Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-tag {
+  0%, 100% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1); }
+  50% { box-shadow: 0 0 24px rgba(245, 158, 11, 0.8); transform: scale(1.05); }
+}
+
+.animate-glow-tag {
+  animation: pulse-glow-tag 2.5s infinite ease-in-out;
+}
+
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-appear {
+  animation: card-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cart-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1) translateY(-4px); }
+}
+
+.animate-cart-bounce {
+  animation: cart-bounce 0.4s ease-in-out;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #07090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0052FF;
+}

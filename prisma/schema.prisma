@@ -1,0 +1,255 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  SUPER_ADMIN
+  MERCHANT_OWNER
+  MERCHANT_STAFF
+}
+
+enum SubscriptionPlan {
+  FREE
+  EMPRENDEDOR
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum PaymentMethodType {
+  WHATSAPP
+  GATEWAY_WOMPI
+  GATEWAY_MERCADOPAGO
+  CASH_ON_DELIVERY
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ==========================================
+// MODELOS DE USUARIO Y AUTENTICACIÓN
+// ==========================================
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  fullName      String
+  phoneNumber   String
+  role          UserRole       @default(MERCHANT_OWNER)
+  isActive      Boolean        @default(true)
+  emailVerified DateTime?
+  
+  stores        Store[]
+  subscriptions Subscription[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([email])
+}
+
+// ==========================================
+// MODELO DE TIENDA (MULTI-TENANT)
+// ==========================================
+
+model Store {
+  id              String         @id @default(uuid())
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  storeName       String
+  slug            String         @unique
+  description     String?        @db.Text
+  logoUrl         String?
+  bannerUrl       String?
+  whatsappNumber  String
+  
+  themeColor      String         @default("#25D366")
+  currency        String         @default("COP")
+  customDomain    String?        @unique
+  
+  enableWhatsapp  Boolean        @default(true)
+  enableGateway   Boolean        @default(false)
+  
+  paymentKeysJson Json?          @default("{}")
+  
+  categories      Category[]
+  products        Product[]
+  orders          Order[]
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([slug])
+  @@index([ownerId])
+}
+
+// ==========================================
+// MODELOS DE CATÁLOGO Y PRODUCTOS
+// ==========================================
+
+model Category {
+  id          String    @id @default(uuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  name        String
+  slug        String
+  description String?
+  isActive    Boolean   @default(true)
+  
+  products    Product[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([storeId, slug])
+  @@index([storeId])
+}
+
+model Product {
+  id           String         @id @default(uuid())
+  storeId      String
+  store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  categoryId   String?
+  category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  title        String
+  slug         String
+  description  String?        @db.Text
+  price        Decimal        @db.Decimal(12, 2)
+  comparePrice Decimal?       @db.Decimal(12, 2)
+  stock        Int            @default(0)
+  sku          String?
+  isActive     Boolean        @default(true)
+  isFeatured   Boolean        @default(false)
+  
+  images       ProductImage[]
+  orderItems   OrderItem[]
+  
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([storeId, isActive])
+  @@index([categoryId])
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  imageUrl  String
+  position  Int      @default(0)
+  
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// MODELOS DE PEDIDOS Y CHECKOUT
+// ==========================================
+
+model Order {
+  id               String            @id @default(uuid())
+  orderNumber      Int               @default(autoincrement())
+  storeId          String
+  store            Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  customerInfoJson Json
+  
+  totalAmount      Decimal           @db.Decimal(12, 2)
+  paymentMethod    PaymentMethodType @default(WHATSAPP)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  orderStatus      OrderStatus       @default(PENDING)
+  
+  gatewayReference String?           @unique
+  
+  items            OrderItem[]
+  
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([storeId])
+  @@index([gatewayReference])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  productName String
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  quantity    Int
+  subtotal    Decimal  @db.Decimal(12, 2)
+  
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// MODELO DE SUSCRIPCIONES Y COBROS SAAS
+// ==========================================
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  userId                 String
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  plan                   SubscriptionPlan   @default(FREE)
+  status                 SubscriptionStatus @default(ACTIVE)
+  
+  amount                 Decimal            @db.Decimal(10, 2)
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean            @default(false)
+  
+  externalSubscriptionId String?            @unique
+  
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([userId])
+}
+
+model WebhookLog {
+  id        String   @id @default(uuid())
+  provider  String
+  eventType String
+  payload   Json
+  processed Boolean  @default(false)
+  error     String?  @db.Text
+  createdAt DateTime @default(now())
+}
