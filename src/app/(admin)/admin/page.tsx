@@ -28,7 +28,8 @@ import {
   Zap,
   Globe,
   Sliders,
-  Trash2
+  Trash2,
+  RotateCcw
 } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
 
@@ -292,9 +293,26 @@ export default function SuperAdminDashboard() {
   };
 
   // Métricas calculadas
+  const [revenueResetOffset, setRevenueResetOffset] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("visionweb_admin_revenue_offset");
+      return saved ? parseInt(saved, 10) || 0 : 0;
+    }
+    return 0;
+  });
+
+  const handleResetRevenue = () => {
+    const currentGross = merchants.reduce((acc, m) => acc + (m.isActive ? m.totalPaidCOP : 0), 0);
+    setRevenueResetOffset(currentGross);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("visionweb_admin_revenue_offset", currentGross.toString());
+    }
+  };
+
   const pendingUsersCount = merchants.filter((m) => !m.isActive).length;
-  const activeUsersCount = merchants.filter((m) => m.isActive).length;
-  const totalRevenue = merchants.reduce((acc, m) => acc + m.totalPaidCOP, 0);
+  const activeUsersCount = merchants.filter((m) => m.isActive && m.daysLeft > 0).length;
+  const grossRevenue = merchants.reduce((acc, m) => acc + (m.isActive ? m.totalPaidCOP : 0), 0);
+  const totalRevenue = Math.max(0, grossRevenue - revenueResetOffset);
 
   // Filtrado de negocios
   const filteredMerchants = merchants.filter((m) => {
@@ -393,13 +411,22 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Total Revenue */}
-          <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Recaudación por Arriendos</span>
-              <DollarSign className="h-5 w-5 text-[#0052FF]" />
+          <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">Recaudación por Arriendos</span>
+                <DollarSign className="h-5 w-5 text-emerald-400" />
+              </div>
+              <p className="text-3xl font-black text-emerald-400">{formatCOP(totalRevenue)}</p>
+              <p className="text-xs text-slate-400 mt-1">Planes $15k, $20k, $25k</p>
             </div>
-            <p className="text-3xl font-black text-white">{formatCOP(totalRevenue)}</p>
-            <p className="text-xs text-slate-400 mt-1">Planes $15k, $20k, $25k</p>
+            <button
+              onClick={handleResetRevenue}
+              type="button"
+              className="mt-3 text-[11px] text-slate-400 hover:text-red-400 font-bold border border-slate-800 hover:border-red-500/40 bg-slate-950 p-2 rounded-xl transition flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Restablecer Contador
+            </button>
           </div>
 
           {/* Total Registered */}
@@ -698,18 +725,40 @@ export default function SuperAdminDashboard() {
                   </div>
                 </div>
 
-                {/* 2. Seleccionar Plan (4 opciones) */}
+                {/* 2. Seleccionar Plan (4 opciones con auto-activación de módulos) */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-2">2. Asignar Plan de Arriendo</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-2">2. Asignar Plan de Arriendo (Auto-activa Módulos)</label>
                   <select
                     value={configForm.plan}
-                    onChange={(e) => setConfigForm({ ...configForm, plan: e.target.value })}
+                    onChange={(e) => {
+                      const selPlan = e.target.value;
+                      let autoMods = {
+                        whatsapp: true,
+                        gateway: false,
+                        metrics: false,
+                        inventory: true,
+                        customDomain: false,
+                      };
+
+                      const p = selPlan.toUpperCase();
+                      if (p === "EMPRESA" || p === "VIP") {
+                        autoMods = { whatsapp: true, gateway: true, metrics: true, inventory: true, customDomain: true };
+                      } else if (p === "PRO" || p === "BASICO" || p === "EMPRENDEDOR") {
+                        autoMods = { whatsapp: true, gateway: false, metrics: true, inventory: true, customDomain: false };
+                      }
+
+                      setConfigForm({
+                        ...configForm,
+                        plan: selPlan,
+                        modules: autoMods,
+                      });
+                    }}
                     className="w-full bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl p-3 focus:outline-none focus:border-[#0052FF]"
                   >
-                    <option value="FREE">Plan Prueba Starter (1 Mes Gratis - $0 COP)</option>
-                    <option value="BASICO">Plan Emprendedor Express ($15.000 COP/mes)</option>
-                    <option value="PRO">Plan Negocio Pro (Logo + 2 Colores) ($20.000 COP/mes)</option>
-                    <option value="EMPRESA">Plan Empresa Élite VIP (Todo Incluido) ($25.000 COP/mes)</option>
+                    <option value="FREE_TRIAL">1. Plan Prueba Gratis (15 Días - $0 COP)</option>
+                    <option value="BASICO">2. Plan Emprendedor Express ($15.000 COP/mes)</option>
+                    <option value="PRO">3. Plan Negocio Pro ($20.000 COP/mes)</option>
+                    <option value="EMPRESA">4. Plan Empresa Élite VIP ($25.000 COP/mes)</option>
                   </select>
                 </div>
 

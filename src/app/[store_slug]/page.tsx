@@ -811,39 +811,32 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
         </div>
       )}
 
-      {/* BOTÓN FLOTANTE DINÁMICO STICKY DEL CARRITO CON AURA RESPLANDECIENTE */}
+      {/* BOTÓN FLOTANTE ELEGANTE Y ORDENADO DEL CARRITO DE COMPRAS */}
       {mounted && getTotalItems() > 0 && !isCartOpen && !isCheckoutModalOpen && (
-        <div className="fixed bottom-6 right-6 z-40 animate-bounce">
-          <div className="relative group">
-            {/* Aura Resplandeciente Neón */}
+        <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40">
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="flex items-center gap-3 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 hover:border-emerald-500/80 p-2 pr-5 rounded-2xl shadow-2xl text-white transition-all duration-300 transform hover:scale-105 active:scale-95 group"
+          >
             <div 
-              className="absolute -inset-1 rounded-full opacity-80 blur-md animate-pulse-ring pointer-events-none"
-              style={{ backgroundColor: primaryColor }}
-            />
-
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center gap-3 px-5 py-3.5 rounded-full text-white font-black text-xs sm:text-sm shadow-2xl transition-all duration-300 transform group-hover:scale-105 active:scale-95 border border-white/20"
-              style={{ backgroundColor: primaryColor }}
+              className="h-11 w-11 rounded-xl flex items-center justify-center relative text-slate-950 font-black shadow-md shrink-0"
+              style={{ backgroundColor: secondaryColor || "#25D366" }}
             >
-              <div className="relative">
-                <ShoppingCart className="h-5 w-5 animate-cart-bounce" />
-                <span 
-                  className="absolute -top-2 -right-2 text-slate-950 text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-slate-950 shadow"
-                  style={{ backgroundColor: secondaryColor }}
-                >
-                  {getTotalItems()}
-                </span>
-              </div>
+              <ShoppingCart className="h-5 w-5 text-slate-950" />
+              <span className="absolute -top-1.5 -right-1.5 bg-slate-950 text-white font-mono text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-slate-700">
+                {getTotalItems()}
+              </span>
+            </div>
 
-              <div className="flex flex-col text-left leading-tight">
-                <span className="text-[10px] uppercase opacity-90 font-bold">Ver Mi Carrito</span>
-                <span className="font-mono text-xs sm:text-sm font-black text-white">{formatCOP(getTotalPrice())}</span>
-              </div>
+            <div className="flex flex-col text-left leading-tight">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Ver Carrito</span>
+              <span className="font-mono text-sm font-black text-emerald-400">{formatCOP(getTotalPrice())}</span>
+            </div>
 
-              <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+            <div className="h-8 w-8 rounded-xl bg-slate-800 text-slate-200 group-hover:bg-[#0052FF] group-hover:text-white flex items-center justify-center transition-colors ml-1">
+              <ArrowRight className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
         </div>
       )}
 
