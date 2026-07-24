@@ -3,6 +3,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface ProductSizeItem {
+  size: string;
+  stock: number;
+}
+
 export interface StoreConfig {
   name: string;
   email: string;
@@ -22,6 +27,7 @@ export interface StoreConfig {
   daysRemaining: number;
   initialSetupCompleted?: boolean;
   tutorialSeen?: boolean;
+  niche?: "ZAPATOS" | "ROPA" | "COMIDA" | "SALUD" | "TECNOLOGIA" | "GENERAL";
 }
 
 export interface ProductItem {
@@ -37,6 +43,8 @@ export interface ProductItem {
   objectPositionX?: number;
   objectPositionY?: number;
   imageZoom?: number;
+  sizes?: ProductSizeItem[];
+  options?: string[];
 }
 
 export interface OrderItem {
@@ -91,6 +99,7 @@ const DEFAULT_STORE_CONFIG: StoreConfig = {
   daysRemaining: 15,
   initialSetupCompleted: false,
   tutorialSeen: false,
+  niche: "GENERAL",
 };
 
 const DEFAULT_PRODUCTS: ProductItem[] = [];

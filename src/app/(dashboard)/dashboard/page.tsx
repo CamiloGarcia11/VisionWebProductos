@@ -164,13 +164,15 @@ export default function MerchantDashboard() {
     discountPercent: "", 
     finalPrice: "",
     stock: "10", // Inventario / Stock
-    category: "Ropa",
-    specifications: "Material: 100% Algodón nacional | Tallas: S, M, L | Garantía: 30 Días",
+    category: "General",
+    specifications: "",
     imageUrl: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop",
     imageFit: "cover" as "cover" | "contain",
     positionX: 50,
     positionY: 50,
-    zoom: 100
+    zoom: 100,
+    sizes: [] as Array<{ size: string; stock: number }>,
+    optionsStr: ""
   });
 
   // Recalcular automáticamente precio final cuando cambia el precio original o el % de descuento
@@ -199,19 +201,31 @@ export default function MerchantDashboard() {
   // Abrir Modal para Crear Producto Nuevo
   const handleOpenCreateModal = () => {
     setEditingProductId(null);
+    const initialSizes = storeConfig.niche === "ZAPATOS" 
+      ? ["36", "37", "38", "39", "40", "41", "42"].map(s => ({ size: s, stock: 5 }))
+      : storeConfig.niche === "ROPA"
+      ? ["S", "M", "L", "XL"].map(s => ({ size: s, stock: 5 }))
+      : [];
+
+    const defaultOptions = storeConfig.niche === "COMIDA"
+      ? "Personal (4 Porciones), Mediana (8 Porciones), Familiar (12 Porciones)"
+      : "";
+
     setProductForm({
       title: "",
       originalPrice: "",
       discountPercent: "",
       finalPrice: "",
       stock: "10",
-      category: "Ropa",
-      specifications: "Material: 100% Algodón nacional | Tallas: S, M, L | Garantía: 30 Días",
+      category: "General",
+      specifications: storeConfig.niche === "ZAPATOS" ? "Material: Cuero Sintético Premium | Suela: EVA Antideslizante" : storeConfig.niche === "COMIDA" ? "Incluye bebida y salsas de la casa" : "",
       imageUrl: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop",
       imageFit: "cover",
       positionX: 50,
       positionY: 50,
-      zoom: 100
+      zoom: 100,
+      sizes: initialSizes,
+      optionsStr: defaultOptions
     });
     setIsModalOpen(true);
   };
@@ -235,7 +249,9 @@ export default function MerchantDashboard() {
       imageFit: product.imageFit || "cover",
       positionX: product.objectPositionX ?? 50,
       positionY: product.objectPositionY ?? 50,
-      zoom: product.imageZoom ?? 100
+      zoom: product.imageZoom ?? 100,
+      sizes: product.sizes || [],
+      optionsStr: product.options ? product.options.join(", ") : ""
     });
     setIsModalOpen(true);
   };
@@ -248,7 +264,16 @@ export default function MerchantDashboard() {
     const finalP = parseFloat(productForm.finalPrice);
     const origP = productForm.originalPrice ? parseFloat(productForm.originalPrice) : undefined;
     const compP = origP && origP > finalP ? origP : undefined;
-    const stk = parseInt(productForm.stock) || 0;
+    
+    // Si hay tallas especificadas, calcular el stock total sumando las unidades de cada talla
+    const activeSizes = productForm.sizes.filter(s => s.stock >= 0);
+    const stk = activeSizes.length > 0 
+      ? activeSizes.reduce((acc, s) => acc + (s.stock || 0), 0)
+      : parseInt(productForm.stock) || 0;
+
+    const parsedOptions = productForm.optionsStr
+      ? productForm.optionsStr.split(",").map(s => s.trim()).filter(Boolean)
+      : [];
 
     if (editingProductId) {
       // MODO EDICIÓN
@@ -264,7 +289,9 @@ export default function MerchantDashboard() {
         imageFit: productForm.imageFit,
         objectPositionX: productForm.positionX,
         objectPositionY: productForm.positionY,
-        imageZoom: productForm.zoom
+        imageZoom: productForm.zoom,
+        sizes: activeSizes.length > 0 ? activeSizes : undefined,
+        options: parsedOptions.length > 0 ? parsedOptions : undefined
       };
 
       updateProduct(updatedItem);
@@ -283,7 +310,9 @@ export default function MerchantDashboard() {
         imageFit: productForm.imageFit,
         objectPositionX: productForm.positionX,
         objectPositionY: productForm.positionY,
-        imageZoom: productForm.zoom
+        imageZoom: productForm.zoom,
+        sizes: activeSizes.length > 0 ? activeSizes : undefined,
+        options: parsedOptions.length > 0 ? parsedOptions : undefined
       };
 
       addProduct(createdItem);
@@ -1028,34 +1057,121 @@ export default function MerchantDashboard() {
                   </div>
                 </div>
 
-                {/* 2. PALETAS TEMÁTICAS COMPLETAS */}
-                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                  <label className="block text-xs font-bold text-slate-200 mb-2">2. Paletas Temáticas Completas (1 Clic)</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {THEME_PRESETS.map((preset) => (
-                      <button
-                        key={preset.name}
-                        type="button"
-                        onClick={() => {
-                          setStoreConfig({
-                            ...storeConfig,
-                            primaryColor: preset.primary,
-                            secondaryColor: preset.secondary,
-                            backgroundColor: preset.background,
-                            cardColor: preset.card,
-                          });
-                          triggerToast(`🎨 Paleta "${preset.name}" seleccionada. Haz clic en guardar para publicar.`);
-                        }}
-                        className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 rounded-2xl text-left transition group"
-                      >
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.primary }} />
-                          <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.secondary }} />
-                          <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.background }} />
-                        </div>
-                        <span className="text-xs font-bold text-white group-hover:text-[#60A5FA] truncate block">{preset.name}</span>
-                      </button>
-                    ))}
+                {/* 2. SELECTOR PERSONALIZADO DE COLORES & COMBINADOR LIBRE */}
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-2">
+                      <Palette className="h-4 w-4 text-[#0052FF]" /> 2. Personalizador & Combinador Libre de Colores
+                    </label>
+                    <p className="text-[11px] text-slate-400">Escoge los colores exactos para tu tienda web usando el selector interactivo o ingresando el código HEX.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Color Primario */}
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-300">Color Primario (Botones)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={storeConfig.primaryColor || "#0052FF"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, primaryColor: e.target.value })}
+                          className="h-9 w-12 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                        />
+                        <input
+                          type="text"
+                          value={storeConfig.primaryColor || "#0052FF"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, primaryColor: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:outline-none focus:border-[#0052FF]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Color Secundario */}
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-300">Color Secundario (Acentos)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={storeConfig.secondaryColor || "#25D366"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, secondaryColor: e.target.value })}
+                          className="h-9 w-12 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                        />
+                        <input
+                          type="text"
+                          value={storeConfig.secondaryColor || "#25D366"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, secondaryColor: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:outline-none focus:border-[#0052FF]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Color de Fondo del Sitio */}
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-300">Fondo de la Página Web</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={storeConfig.backgroundColor || "#07090e"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, backgroundColor: e.target.value })}
+                          className="h-9 w-12 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                        />
+                        <input
+                          type="text"
+                          value={storeConfig.backgroundColor || "#07090e"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, backgroundColor: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:outline-none focus:border-[#0052FF]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Color de Tarjetas */}
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-300">Tarjetas de Productos</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={storeConfig.cardColor || "#0f172a"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, cardColor: e.target.value })}
+                          className="h-9 w-12 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                        />
+                        <input
+                          type="text"
+                          value={storeConfig.cardColor || "#0f172a"}
+                          onChange={(e) => setStoreConfig({ ...storeConfig, cardColor: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:outline-none focus:border-[#0052FF]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-800/80">
+                    <label className="block text-xs font-bold text-slate-400 mb-2">O elige una Paleta Temática Predeterminada en 1 Clic:</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {THEME_PRESETS.map((preset) => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => {
+                            setStoreConfig({
+                              ...storeConfig,
+                              primaryColor: preset.primary,
+                              secondaryColor: preset.secondary,
+                              backgroundColor: preset.background,
+                              cardColor: preset.card,
+                            });
+                            triggerToast(`🎨 Paleta "${preset.name}" seleccionada.`);
+                          }}
+                          className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 rounded-2xl text-left transition group"
+                        >
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.primary }} />
+                            <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.secondary }} />
+                            <span className="h-4 w-4 rounded-full border border-slate-700" style={{ backgroundColor: preset.background }} />
+                          </div>
+                          <span className="text-xs font-bold text-white group-hover:text-[#60A5FA] truncate block">{preset.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -1674,30 +1790,121 @@ export default function MerchantDashboard() {
                     </div>
                   </div>
 
-                  {/* CAMPO DE STOCK DE INVENTARIO */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Stock Disponible (Unidades en Inventario) *</label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      placeholder="10"
-                      value={productForm.stock}
-                      onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0052FF]"
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1 block">
-                      Si pones 0 unidades, el producto aparecerá etiquetado como <strong>AGOTADO</strong> en la tienda.
-                    </span>
-                  </div>
+                  {/* GESTIÓN DE TALLAS E INVENTARIO INDIVIDUAL POR TALLA (ZAPATOS / ROPA) */}
+                  {(storeConfig.niche === "ZAPATOS" || storeConfig.niche === "ROPA" || productForm.sizes.length > 0) && (
+                    <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          {storeConfig.niche === "ZAPATOS" ? "👟 Tallas de Calzado & Stock Individual" : "👗 Tallas de Ropa & Stock Individual"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          Stock Total: <strong className="text-white">{productForm.sizes.reduce((a, b) => a + (b.stock || 0), 0)} un.</strong>
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {(storeConfig.niche === "ZAPATOS" 
+                          ? ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44"]
+                          : ["XS", "S", "M", "L", "XL", "XXL"]
+                        ).map((sz) => {
+                          const existing = productForm.sizes.find(s => s.size === sz);
+                          const isEnabled = Boolean(existing);
+
+                          return (
+                            <div key={sz} className={`p-2 rounded-xl border flex flex-col gap-1 transition ${
+                              isEnabled ? "bg-slate-950 border-emerald-500/50" : "bg-slate-950/50 border-slate-800 opacity-60"
+                            }`}>
+                              <label className="flex items-center gap-1.5 text-xs font-black cursor-pointer text-white">
+                                <input
+                                  type="checkbox"
+                                  checked={isEnabled}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setProductForm({
+                                        ...productForm,
+                                        sizes: [...productForm.sizes, { size: sz, stock: 5 }]
+                                      });
+                                    } else {
+                                      setProductForm({
+                                        ...productForm,
+                                        sizes: productForm.sizes.filter(s => s.size !== sz)
+                                      });
+                                    }
+                                  }}
+                                  className="accent-emerald-500 h-3.5 w-3.5"
+                                />
+                                <span>Talla {sz}</span>
+                              </label>
+
+                              {isEnabled && (
+                                <input
+                                  type="number"
+                                  min="0"
+                                  placeholder="Cant."
+                                  value={existing?.stock ?? 0}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    setProductForm({
+                                      ...productForm,
+                                      sizes: productForm.sizes.map(s => s.size === sz ? { ...s, stock: val } : s)
+                                    });
+                                  }}
+                                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-bold text-emerald-400 focus:outline-none focus:border-emerald-500"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* VARIACIONES Y TAMAÑOS (COMIDA RÁPIDA / PIZZERÍAS / OTROS) */}
+                  {(storeConfig.niche === "COMIDA" || productForm.optionsStr) && (
+                    <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                      <label className="block text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                        🍔 Tamaños / Porciones (Separadas por comas)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. Personal (4 porciones), Mediana (8 porciones), Familiar (12 porciones)"
+                        value={productForm.optionsStr}
+                        onChange={(e) => setProductForm({ ...productForm, optionsStr: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  )}
+
+                  {/* CAMPO DE STOCK DE INVENTARIO GENERAL */}
+                  {productForm.sizes.length === 0 && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">Stock Disponible (Unidades en Inventario) *</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        placeholder="10"
+                        value={productForm.stock}
+                        onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0052FF]"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        Si pones 0 unidades, el producto aparecerá etiquetado como <strong>AGOTADO</strong> en la tienda.
+                      </span>
+                    </div>
+                  )}
 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Especificaciones Técnicas / Detalles</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Especificaciones Técnicas / Detalles o Modificaciones Especiales</label>
                   <textarea
                     rows={2}
-                    placeholder="Ej. Material: 100% Algodón | Tallas: S, M, L | Garantía: 30 Días"
+                    placeholder={
+                      storeConfig.niche === "COMIDA"
+                        ? "Ej. Incluye bebida gratis | Opción sin cebolla disponible | Salsas de la casa"
+                        : "Ej. Material: 100% Algodón | Tallas: S, M, L | Garantía: 30 Días"
+                    }
                     value={productForm.specifications}
                     onChange={(e) => setProductForm({ ...productForm, specifications: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-[#0052FF]"
@@ -1923,6 +2130,39 @@ export default function MerchantDashboard() {
 
                 triggerToast("🎉 ¡Configuración guardada en tu cuenta! A continuación, mira las funciones de tu plan.");
               }} className="space-y-4">
+                
+                {/* SELECCIÓN DE NICHO / TIPO DE NEGOCIO */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+                    <Store className="h-4 w-4 text-[#60A5FA]" /> ¿Qué tipo de negocio tienes? *
+                  </label>
+                  <p className="text-[11px] text-slate-400 mb-2">Selecciona tu categoría para habilitar el gestor de tallas, porciones y opciones correspondientes.</p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { key: "ZAPATOS", label: "Zapatos & Calzado", icon: "👟" },
+                      { key: "ROPA", label: "Venta de Ropa", icon: "👗" },
+                      { key: "COMIDA", label: "Comida Rápida", icon: "🍔" },
+                      { key: "SALUD", label: "Salud & Belleza", icon: "💊" },
+                      { key: "TECNOLOGIA", label: "Tecnología", icon: "📱" },
+                      { key: "GENERAL", label: "Comercio General", icon: "🛒" },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setStoreConfig({ ...storeConfig, niche: item.key as any })}
+                        className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 ${
+                          (storeConfig.niche || "GENERAL") === item.key
+                            ? "bg-[#0052FF]/20 border-[#0052FF] text-white shadow-md ring-1 ring-[#0052FF]"
+                            : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900"
+                        }`}
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="font-bold text-xs truncate">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 
                 {/* 1. Slug de la Tienda */}
                 <div>

@@ -16,6 +16,11 @@ export interface StorePublicData {
   enableGateway: boolean;
 }
 
+export interface ProductSizeItem {
+  size: string;
+  stock: number;
+}
+
 export interface ProductData {
   id: string;
   storeId: string;
@@ -33,8 +38,16 @@ export interface ProductData {
   objectPositionX?: number;
   objectPositionY?: number;
   imageZoom?: number;
+  sizes?: ProductSizeItem[];
+  options?: string[];
+  selectedSize?: string;
+  selectedOption?: string;
+  customerNotes?: string;
 }
 
 export interface CartStoreItem extends ProductData {
   quantity: number;
+  selectedSize?: string;
+  selectedOption?: string;
+  customerNotes?: string;
 }

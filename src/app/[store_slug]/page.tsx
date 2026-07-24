@@ -47,6 +47,8 @@ interface Product {
   objectPositionX?: number;
   objectPositionY?: number;
   imageZoom?: number;
+  sizes?: Array<{ size: string; stock: number }>;
+  options?: string[];
 }
 
 export default function StoreFrontPage({ params }: { params: { store_slug: string } }) {
@@ -73,6 +75,11 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
   // Estado del Modal de Detalle del Producto
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalQuantity, setModalQuantity] = useState(1);
+
+  // Estado para la Talla, Variación e Indicaciones del Cliente
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [customerItemNotes, setCustomerItemNotes] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -117,11 +124,13 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
     const g = parseInt(hex.substring(2, 4), 16) || 0;
     const b = parseInt(hex.substring(4, 6), 16) || 0;
     const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    return yiq >= 128 ? "#020617" : "#ffffff";
+    return yiq >= 140 ? "#0f172a" : "#ffffff";
   };
 
   const textColor = getContrastTextColor(backgroundColor);
   const cardTextColor = getContrastTextColor(cardColor);
+  const primaryTextColor = getContrastTextColor(primaryColor);
+  const secondaryTextColor = getContrastTextColor(secondaryColor);
 
   const fontGoogleQuery = 
     fontFamily === "Outfit" ? "family=Outfit:wght@400;600;700;900" :
@@ -140,7 +149,9 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
         imageFit: p.imageFit,
         objectPositionX: p.objectPositionX,
         objectPositionY: p.objectPositionY,
-        imageZoom: p.imageZoom
+        imageZoom: p.imageZoom,
+        sizes: p.sizes,
+        options: p.options
       }))
     : [];
 
@@ -149,6 +160,9 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
   const handleOpenDetailModal = (product: Product) => {
     setSelectedProduct(product);
     setModalQuantity(1);
+    setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0].size : "");
+    setSelectedOption(product.options && product.options.length > 0 ? product.options[0] : "");
+    setCustomerItemNotes("");
   };
 
   const handleAddFromModal = () => {
@@ -166,16 +180,20 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
         stock: selectedProduct.stock,
         imageUrl: selectedProduct.imageUrl,
         isActive: selectedProduct.isActive,
-        imageFit: selectedProduct.imageFit
+        imageFit: selectedProduct.imageFit,
+        selectedSize: selectedSize || undefined,
+        selectedOption: selectedOption || undefined,
+        customerNotes: customerItemNotes || undefined
       });
     }
     setSelectedProduct(null);
-    triggerToast(`🛒 ¡${modalQuantity}x ${selectedProduct.title} agregado al carrito!`);
+    triggerToast(`🛒 ¡${modalQuantity}x ${selectedProduct.title} ${selectedSize ? `(Talla ${selectedSize})` : ""} agregado al carrito!`);
     setIsCartOpen(true);
   };
 
   // Abrir Modal de Confirmación de Compra Directa
   const handleOpenDirectCheckout = (product: Product) => {
+    setSelectedProduct(null);
     setSingleDirectProduct({ product, quantity: modalQuantity });
     setIsCheckoutModalOpen(true);
   };
@@ -189,32 +207,40 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
   };
 
   // Confirmar y procesar envío final del Pedido a WhatsApp
-  const handleConfirmAndSubmitOrder = (e: React.FormEvent) => {
+  const handleConfirmWhatsAppOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const waNumber = whatsappNumber.replace(/[^0-9]/g, "");
+    const cleanWa = whatsappNumber.replace(/[^0-9]/g, "");
+    const waNumber = cleanWa ? (cleanWa.startsWith("57") ? cleanWa : `57${cleanWa}`) : "573052311490";
 
-    let text = `🛒 *NUEVO PEDIDO CONFIRMADO EN LA TIENDA*\n\n`;
-    text += `🏬 *Tienda:* ${storeName}\n`;
+    let text = `🛒 *¡NUEVO PEDIDO DESDE LA TIENDA WEB!*\n\n`;
     if (customerData.name) text += `👤 *Cliente:* ${customerData.name}\n`;
     if (customerData.address) text += `📍 *Dirección:* ${customerData.address} (${customerData.city || "Ciudad sin especificar"})\n`;
-    if (customerData.notes) text += `📝 *Notas:* ${customerData.notes}\n`;
+    if (customerData.notes) text += `📝 *Notas del Pedido:* ${customerData.notes}\n`;
     text += `\n📋 *DETALLE DEL PEDIDO:*\n`;
 
     let total = 0;
     if (singleDirectProduct) {
       const subtotal = singleDirectProduct.product.price * singleDirectProduct.quantity;
-      text += `• ${singleDirectProduct.product.title} (x${singleDirectProduct.quantity}) - ${formatCOP(subtotal)}\n`;
+      text += `• *${singleDirectProduct.product.title}* (x${singleDirectProduct.quantity})\n`;
+      if (selectedSize) text += `  ↳ *Talla:* ${selectedSize}\n`;
+      if (selectedOption) text += `  ↳ *Variación/Tamaño:* ${selectedOption}\n`;
+      if (customerItemNotes) text += `  ↳ *Especificación:* ${customerItemNotes}\n`;
+      text += `  ↳ *Subtotal:* ${formatCOP(subtotal)}\n`;
       total = subtotal;
     } else {
       items.forEach((item) => {
         const itemSubtotal = item.price * item.quantity;
-        text += `• ${item.title} (x${item.quantity}) - ${formatCOP(itemSubtotal)}\n`;
+        text += `• *${item.title}* (x${item.quantity})\n`;
+        if (item.selectedSize) text += `  ↳ *Talla:* ${item.selectedSize}\n`;
+        if (item.selectedOption) text += `  ↳ *Variación/Tamaño:* ${item.selectedOption}\n`;
+        if (item.customerNotes) text += `  ↳ *Especificación:* ${item.customerNotes}\n`;
+        text += `  ↳ *Subtotal:* ${formatCOP(itemSubtotal)}\n`;
       });
       total = getTotalPrice();
     }
 
     text += `\n💵 *TOTAL A PAGAR:* ${formatCOP(total)}\n\n`;
-    text += `Quedo atento a los datos bancarios / confirmación de envío. ¡Gracias!`;
+    text += `Quedo atento a la confirmación de mi pedido. ¡Muchas gracias!`;
 
     // Registrar Pedido en la base de datos local del comerciante
     const orderItems = singleDirectProduct
@@ -307,7 +333,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
             )}
 
             <div>
-              <h1 className="font-black text-base md:text-lg leading-tight text-white group-hover:text-[#60A5FA] transition-colors">{storeName}</h1>
+              <h1 className="font-black text-base md:text-lg leading-tight transition-colors" style={{ color: textColor }}>{storeName}</h1>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold" style={{ color: secondaryColor }}>
                 <span className="h-2 w-2 rounded-full animate-ping" style={{ backgroundColor: secondaryColor }} /> Tienda Oficial Verificada
               </span>
@@ -316,13 +342,13 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
 
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center gap-2.5 border border-white/20 text-white px-4.5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 group"
-            style={{ backgroundColor: cardColor }}
+            className="relative flex items-center gap-2.5 border border-white/20 px-4.5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 group"
+            style={{ backgroundColor: cardColor, color: cardTextColor }}
           >
             <div className="relative">
               <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110" style={{ color: primaryColor }} />
               {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 text-slate-950 px-1.5 py-0.2 rounded-full text-[10px] font-black animate-cart-bounce shadow border border-slate-950" style={{ backgroundColor: secondaryColor }}>
+                <span className="absolute -top-2 -right-2 px-1.5 py-0.2 rounded-full text-[10px] font-black animate-cart-bounce shadow border border-slate-950" style={{ backgroundColor: secondaryColor, color: secondaryTextColor }}>
                   {getTotalItems()}
                 </span>
               )}
@@ -352,11 +378,11 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
             <Zap className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> Envíos Garantizados y Pedidos Rápidos a WhatsApp
           </span>
 
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight" style={{ color: textColor }}>
             Catálogo Exclusivo de Productos
           </h2>
 
-          <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm md:text-base max-w-xl mx-auto leading-relaxed opacity-80" style={{ color: textColor }}>
             Explora nuestra colección. Abre cualquier producto para ver sus detalles técnicos o haz tu pedido directamente por WhatsApp.
           </p>
 
@@ -372,6 +398,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
               className="glass-panel-hover rounded-3xl overflow-hidden border border-white/10 flex flex-col justify-between group shadow-xl transition-all duration-500 animate-card-appear h-full"
               style={{ 
                 backgroundColor: cardColor,
+                color: cardTextColor,
                 animationDelay: `${idx * 80}ms`
               }}
             >
@@ -408,8 +435,8 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
 
                   {product.comparePrice && product.comparePrice > product.price && (
                     <span 
-                      className="text-slate-950 text-[11px] font-black px-3 py-1 rounded-full shadow-lg flex items-center gap-1 animate-glow-tag"
-                      style={{ backgroundColor: secondaryColor }}
+                      className="text-[11px] font-black px-3 py-1 rounded-full shadow-lg flex items-center gap-1 animate-glow-tag"
+                      style={{ backgroundColor: secondaryColor, color: secondaryTextColor }}
                     >
                       <Tag className="h-3 w-3" /> OFERTA
                     </span>
@@ -428,27 +455,28 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                 <div>
                   <h3 
                     onClick={() => handleOpenDetailModal(product)}
-                    className="text-base font-black text-white hover:text-[#60A5FA] transition-colors cursor-pointer line-clamp-1 mb-1.5"
+                    className="text-base font-black transition-colors cursor-pointer line-clamp-1 mb-1.5"
+                    style={{ color: cardTextColor }}
                   >
                     {product.title}
                   </h3>
-                  <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed">
+                  <p className="text-xs line-clamp-2 leading-relaxed opacity-75" style={{ color: cardTextColor }}>
                     {product.specifications || "Producto de alta calidad listo para envío inmediato."}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-white/5">
+                <div className="pt-2 border-t border-white/10">
                   <div className="flex items-baseline justify-between mb-4">
                     <div>
-                      <span className="text-2xl font-black text-white tracking-tight">{formatCOP(product.price)}</span>
+                      <span className="text-2xl font-black tracking-tight" style={{ color: cardTextColor }}>{formatCOP(product.price)}</span>
                       {product.comparePrice && product.comparePrice > product.price && (
-                        <span className="ml-2.5 text-xs text-slate-500 line-through font-semibold">
+                        <span className="ml-2.5 text-xs opacity-60 line-through font-semibold" style={{ color: cardTextColor }}>
                           {formatCOP(product.comparePrice)}
                         </span>
                       )}
                     </div>
                     
-                    <span className={`text-[11px] font-bold ${product.stock <= 0 ? "text-red-400" : product.stock <= 3 ? "text-amber-400 font-black" : "text-slate-400"}`}>
+                    <span className={`text-[11px] font-bold ${product.stock <= 0 ? "text-red-400" : product.stock <= 3 ? "text-amber-400 font-black" : "opacity-75"}`}>
                       {product.stock <= 0 ? "Agotado" : `Stock: ${product.stock} un.`}
                     </span>
                   </div>
@@ -483,9 +511,9 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                       className={`w-full font-black py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow-lg ${
                         product.stock <= 0 
                           ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700" 
-                          : "text-white hover:scale-[1.02] active:scale-95"
+                          : "hover:scale-[1.02] active:scale-95"
                       }`}
-                      style={product.stock > 0 ? { backgroundColor: primaryColor } : undefined}
+                      style={product.stock > 0 ? { backgroundColor: primaryColor, color: primaryTextColor } : undefined}
                     >
                       <Plus className="h-4 w-4" /> {product.stock <= 0 ? "Agotado" : "Carrito"}
                     </button>
@@ -569,6 +597,73 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                       </div>
                     </div>
                   )}
+
+                  {/* SELECTOR DE TALLAS (ZAPATOS / ROPA) */}
+                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                    <div className="bg-slate-950/80 border border-white/10 rounded-2xl p-3.5 mb-3">
+                      <label className="text-xs font-bold text-emerald-400 block mb-2">
+                        👟 Selecciona tu Talla *:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProduct.sizes.map((s) => (
+                          <button
+                            key={s.size}
+                            type="button"
+                            disabled={s.stock <= 0}
+                            onClick={() => setSelectedSize(s.size)}
+                            className={`px-3 py-1.5 rounded-xl font-black text-xs border transition ${
+                              selectedSize === s.size
+                                ? "bg-[#0052FF] text-white border-[#0052FF] shadow-lg ring-2 ring-[#0052FF]/40"
+                                : s.stock <= 0
+                                ? "bg-slate-900 border-slate-800 text-slate-600 line-through cursor-not-allowed"
+                                : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white"
+                            }`}
+                          >
+                            Talla {s.size} {s.stock > 0 && s.stock <= 3 ? `(¡${s.stock} un!)` : ""}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SELECTOR DE TAMAÑOS / PORCIONES (COMIDA RÁPIDA / OTROS) */}
+                  {selectedProduct.options && selectedProduct.options.length > 0 && (
+                    <div className="bg-slate-950/80 border border-white/10 rounded-2xl p-3.5 mb-3">
+                      <label className="text-xs font-bold text-amber-400 block mb-2">
+                        🍔 Selecciona Tamaño / Combo *:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProduct.options.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setSelectedOption(opt)}
+                            className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition ${
+                              selectedOption === opt
+                                ? "bg-amber-500 text-slate-950 border-amber-500 shadow-md font-black"
+                                : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* NOTAS / ESPECIFICACIONES ADICIONALES DEL CLIENTE */}
+                  <div className="bg-slate-950/80 border border-white/10 rounded-2xl p-3 mb-3">
+                    <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      📝 Indicaciones especiales para tu pedido (Opcional):
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Sin cebolla, Salsa extra, Entrega urgente..."
+                      value={customerItemNotes}
+                      onChange={(e) => setCustomerItemNotes(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3 pt-2">
@@ -730,7 +825,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                 <p className="text-xs text-slate-300">Serás redirigido a WhatsApp en unos segundos para finalizar con la tienda.</p>
               </div>
             ) : (
-              <form onSubmit={handleConfirmAndSubmitOrder} className="space-y-4">
+              <form onSubmit={handleConfirmWhatsAppOrder} className="space-y-4">
                 
                 <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 max-h-40 overflow-y-auto space-y-2">
                   <span className="text-[11px] font-bold text-slate-400 uppercase block mb-1">Resumen de Compra:</span>
