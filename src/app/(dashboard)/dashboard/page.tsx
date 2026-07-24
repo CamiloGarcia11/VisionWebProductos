@@ -1866,8 +1866,8 @@ function PlanTutorialModal({
       {
         icon: <CreditCard className="h-8 w-8 text-[#60A5FA]" />,
         tag: "2. COBROS EN LÍNEA",
-        heading: "Pasarelas Directas (Wompi / MercadoPago)",
-        desc: "Configura tus llaves API de Wompi o MercadoPago para que tus clientes paguen con tarjetas de crédito, PSE y Nequi en tiempo real.",
+        heading: "Pasarelas de Pago Directas",
+        desc: "Habilita la recepción de pagos automáticos con tarjetas de crédito, PSE y Nequi en tiempo real para tu tienda.",
       },
       {
         icon: <Megaphone className="h-8 w-8 text-purple-400" />,

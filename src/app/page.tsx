@@ -99,7 +99,7 @@ export default function LandingPage() {
             {/* Hero Left Content */}
             <div className="lg:col-span-7 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#0052FF]/40 bg-[#0052FF]/10 px-4 py-1.5 text-xs font-bold text-[#60A5FA] mb-6 backdrop-blur-md shadow-[0_0_15px_rgba(0,82,255,0.2)]">
-                <Sparkles className="h-4 w-4 text-[#0052FF]" /> Prueba Gratis de 1 Mes en Todos los Registros
+                <Sparkles className="h-4 w-4 text-[#0052FF]" /> Prueba Gratis de 15 Días en Todos los Registros
               </div>
 
               <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.1] mb-6">
@@ -118,7 +118,7 @@ export default function LandingPage() {
                   href="/register?plan=FREE_TRIAL"
                   className="glow-button w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-2xl px-8 py-4 text-base font-extrabold text-white shadow-xl"
                 >
-                  Activar 1 Mes Gratis <ArrowRight className="h-5 w-5" />
+                  Activar 15 Días Gratis <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   href="/demo"
@@ -192,20 +192,20 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            {/* Plan 1: Gratis 1 Mes */}
+            {/* Plan 1: Gratis 15 Días */}
             <div className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between relative border border-slate-800">
               <div>
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-bold text-[#60A5FA] mb-4 border border-blue-500/20">
-                  <Clock className="h-3.5 w-3.5" /> 1 Mes Gratis
+                  <Clock className="h-3.5 w-3.5" /> 15 Días Gratis
                 </div>
                 <h3 className="text-lg font-bold text-white">Prueba Starter</h3>
-                <p className="text-xs text-slate-400 mt-1">1 mes de prueba sin costo</p>
+                <p className="text-xs text-slate-400 mt-1">15 días de prueba sin costo</p>
                 <div className="mt-5">
                   <span className="text-3xl font-black text-white">$0</span>
-                  <span className="text-slate-400 text-xs"> / primer mes</span>
+                  <span className="text-slate-400 text-xs"> / 15 días gratis</span>
                 </div>
                 <ul className="mt-6 space-y-3 text-xs text-slate-300 font-medium">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> 30 Días Acceso Total</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> 15 Días Acceso Total</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Checkout por WhatsApp</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Catálogo de Productos</li>
                 </ul>
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 rel="noopener noreferrer"
                 className="mt-8 block text-center rounded-xl bg-slate-800 hover:bg-slate-700 py-3 font-bold text-white transition text-xs border border-slate-700"
               >
-                Solicitar 1 Mes Gratis
+                Solicitar 15 Días Gratis
               </a>
             </div>
 

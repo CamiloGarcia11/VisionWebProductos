@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
               <input
                 type="email"
                 required
-                placeholder="admin@visionweb.com"
+                placeholder="Correo electrónico..."
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-[#0052FF]"

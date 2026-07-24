@@ -512,7 +512,7 @@ export default function SuperAdminDashboard() {
                 className="w-full sm:w-auto bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl px-3 py-2 focus:outline-none focus:border-[#0052FF]"
               >
                 <option value="ALL">Todos los Planes</option>
-                <option value="FREE">Prueba Starter (1 Mes Gratis)</option>
+                <option value="FREE_TRIAL">Prueba Gratis (15 Días)</option>
                 <option value="BASICO">Emprendedor Express ($15.000)</option>
                 <option value="PRO">Negocio Pro ($20.000)</option>
                 <option value="EMPRESA">Empresa Élite VIP ($25.000)</option>
@@ -827,7 +827,7 @@ export default function SuperAdminDashboard() {
                       />
                       <div>
                         <span className="font-bold text-white flex items-center gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5 text-[#60A5FA]" /> Módulo Pasarela Directa (Wompi / Mercado Pago)
+                          <CreditCard className="h-3.5 w-3.5 text-[#60A5FA]" /> Módulo Pasarela Directa (Cobro Electrónico en Línea)
                         </span>
                         <p className="text-[11px] text-slate-500">Permite configurar llaves de cobro en línea en planes $25k</p>
                       </div>
@@ -1040,7 +1040,7 @@ export default function SuperAdminDashboard() {
                       onChange={(e) => setNewUserData({ ...newUserData, plan: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0052FF]"
                     >
-                      <option value="FREE">Prueba Starter (1 Mes Gratis)</option>
+                      <option value="FREE_TRIAL">Prueba Gratis (15 Días - $0 COP)</option>
                       <option value="BASICO">Emprendedor Express ($15.000)</option>
                       <option value="PRO">Negocio Pro ($20.000)</option>
                       <option value="EMPRESA">Empresa Élite VIP ($25.000)</option>

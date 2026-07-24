@@ -216,29 +216,30 @@ export default function CheckoutPage({ params }: { params: { store_slug: string 
                     {paymentMode === "GATEWAY" && <CheckCircle2 className="h-5 w-5 text-blue-600" />}
                   </div>
                   <h3 className="font-bold text-sm text-slate-900">Pasarela Directa</h3>
-                  <p className="text-xs text-slate-500 mt-1">Paga en línea seguro con PSE, Tarjeta o Wompi / Mercado Pago.</p>
+                  <p className="text-xs text-slate-500 mt-1">Paga en línea seguro con Tarjeta o PSE.</p>
                 </button>
               </div>
 
-              {/* Dynamic CTA Button */}
-              {paymentMode === "WHATSAPP" ? (
-                <button
-                  type="button"
-                  onClick={handleWhatsAppCheckout}
-                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-base shadow-md"
-                >
-                  <MessageSquare className="h-5 w-5" /> Enviar Pedido a WhatsApp
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleGatewayCheckout}
-                  disabled={isProcessing}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-base shadow-md disabled:opacity-50"
-                >
-                  <CreditCard className="h-5 w-5" /> {isProcessing ? "Procesando Pago..." : "Pagar con Wompi / Mercado Pago"}
-                </button>
-              )}
+              <div className="pt-4 border-t border-slate-200">
+                {paymentMode === "WHATSAPP" ? (
+                  <button
+                    type="button"
+                    onClick={handleWhatsAppCheckout}
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-base shadow-lg shadow-[#25D366]/20"
+                  >
+                    <MessageSquare className="h-5 w-5" /> Enviar Pedido a WhatsApp
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleGatewayCheckout}
+                    disabled={isProcessing}
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-base shadow-md disabled:opacity-50"
+                  >
+                    <CreditCard className="h-5 w-5" /> {isProcessing ? "Procesando Pago..." : "Pagar en Línea Directo (PSE / Tarjeta)"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
