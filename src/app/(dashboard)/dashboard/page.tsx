@@ -776,6 +776,43 @@ export default function MerchantDashboard() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                  {/* ALTERNADOR RÁPIDO DE MONEDA (COP / USD) EN PRODUCTOS */}
+                  <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl shrink-0">
+                    <span className="text-[10px] font-bold text-slate-400 px-2">Moneda:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextConfig = { ...storeConfig, currency: "COP" as const };
+                        setStoreConfig(nextConfig);
+                        saveStoreConfig(nextConfig);
+                        triggerToast("🇨🇴 Precios de catálogo cambiados a Pesos Colombianos (COP)");
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 ${
+                        (storeConfig.currency || "COP") === "COP"
+                          ? "bg-emerald-500 text-slate-950 shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      🇨🇴 COP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextConfig = { ...storeConfig, currency: "USD" as const };
+                        setStoreConfig(nextConfig);
+                        saveStoreConfig(nextConfig);
+                        triggerToast("🌎 Precios de catálogo cambiados a Dólares ($ USD)");
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 ${
+                        storeConfig.currency === "USD"
+                          ? "bg-emerald-500 text-slate-950 shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      🌎 USD
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => setIsGlobalDiscountModalOpen(true)}
                     className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-black px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-lg"
@@ -2293,6 +2330,54 @@ export default function MerchantDashboard() {
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* 3. Moneda de la Tienda (COP vs USD) */}
+                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                  <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4 text-[#25D366]" /> 3. Moneda de Exhibición de Precios
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase">{storeConfig.currency || "COP"}</span>
+                  </label>
+                  
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Escoge si los precios de tu tienda se mostrarán en <strong>Pesos Colombianos (COP)</strong> o <strong>Dólares ($ USD)</strong>.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStoreConfig({ ...storeConfig, currency: "COP" })}
+                      className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+                        (storeConfig.currency || "COP") === "COP"
+                          ? "bg-emerald-500/20 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500"
+                          : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🇨🇴</span>
+                        <span className="text-xs font-bold">Pesos (COP)</span>
+                      </div>
+                      <span className="text-xs font-mono font-black text-emerald-400">COP</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setStoreConfig({ ...storeConfig, currency: "USD" })}
+                      className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+                        storeConfig.currency === "USD"
+                          ? "bg-emerald-500/20 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500"
+                          : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🌎</span>
+                        <span className="text-xs font-bold">Dólares ($ USD)</span>
+                      </div>
+                      <span className="text-xs font-mono font-black text-emerald-400">USD</span>
+                    </button>
+                  </div>
                 </div>
 
                 <button
