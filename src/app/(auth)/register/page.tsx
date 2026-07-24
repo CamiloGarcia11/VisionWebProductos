@@ -24,6 +24,8 @@ function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    niche: "GENERAL" as "ZAPATOS" | "ROPA" | "COMIDA" | "SALUD" | "TECNOLOGIA" | "GENERAL",
+    currency: "COP" as "COP" | "USD"
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -325,6 +327,76 @@ function RegisterForm() {
                 <span className="text-[10px] font-black text-amber-400">$25.000/mes</span>
               </div>
               <span className="text-[10px] text-purple-300 block">Pasarelas + Dominio VIP</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Nicho de la Empresa OBLIGATORIO */}
+        <div>
+          <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span>Categoría / Nicho de Tu Empresa *</span>
+            <span className="text-[10px] text-amber-400 font-bold uppercase">Obligatorio</span>
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { key: "ZAPATOS", label: "Zapatos & Calzado", icon: "👟" },
+              { key: "ROPA", label: "Venta de Ropa", icon: "👗" },
+              { key: "COMIDA", label: "Comida Rápida", icon: "🍔" },
+              { key: "SALUD", label: "Salud & Belleza", icon: "💊" },
+              { key: "TECNOLOGIA", label: "Tecnología", icon: "📱" },
+              { key: "GENERAL", label: "Comercio General", icon: "🛒" },
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setForm({ ...form, niche: item.key as any })}
+                className={`p-2 rounded-xl border text-left transition flex items-center gap-2 ${
+                  form.niche === item.key
+                    ? "bg-[#0052FF]/20 border-[#0052FF] text-white shadow-md ring-1 ring-[#0052FF]"
+                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                }`}
+              >
+                <span className="text-base">{item.icon}</span>
+                <span className="font-bold text-xs truncate">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Moneda de la Tienda (COP vs USD Internacional) */}
+        <div>
+          <label className="block text-xs font-bold text-slate-300 mb-1">Moneda Principal de Tu Tienda *</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, currency: "COP" })}
+              className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+                form.currency === "COP"
+                  ? "bg-emerald-500/20 border-emerald-500 text-white font-black"
+                  : "bg-slate-950 border-slate-800 text-slate-400"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">🇨🇴</span>
+                <span className="text-xs font-bold">Pesos (COP)</span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400">COP</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, currency: "USD" })}
+              className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+                form.currency === "USD"
+                  ? "bg-emerald-500/20 border-emerald-500 text-white font-black"
+                  : "bg-slate-950 border-slate-800 text-slate-400"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">🌎</span>
+                <span className="text-xs font-bold">Dólares ($ USD)</span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400">USD</span>
             </button>
           </div>
         </div>

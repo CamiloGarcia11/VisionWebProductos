@@ -132,6 +132,9 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
   const primaryTextColor = getContrastTextColor(primaryColor);
   const secondaryTextColor = getContrastTextColor(secondaryColor);
 
+  const activeCurrency = storeConfig?.currency || "COP";
+  const formatPrice = (amount: number | string) => formatCOP(amount, activeCurrency);
+
   const fontGoogleQuery = 
     fontFamily === "Outfit" ? "family=Outfit:wght@400;600;700;900" :
     fontFamily === "Poppins" ? "family=Poppins:wght@400;600;700;900" :
@@ -225,7 +228,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
       if (selectedSize) text += `  ↳ *Talla:* ${selectedSize}\n`;
       if (selectedOption) text += `  ↳ *Variación/Tamaño:* ${selectedOption}\n`;
       if (customerItemNotes) text += `  ↳ *Especificación:* ${customerItemNotes}\n`;
-      text += `  ↳ *Subtotal:* ${formatCOP(subtotal)}\n`;
+      text += `  ↳ *Subtotal:* ${formatPrice(subtotal)}\n`;
       total = subtotal;
     } else {
       items.forEach((item) => {
@@ -234,12 +237,12 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
         if (item.selectedSize) text += `  ↳ *Talla:* ${item.selectedSize}\n`;
         if (item.selectedOption) text += `  ↳ *Variación/Tamaño:* ${item.selectedOption}\n`;
         if (item.customerNotes) text += `  ↳ *Especificación:* ${item.customerNotes}\n`;
-        text += `  ↳ *Subtotal:* ${formatCOP(itemSubtotal)}\n`;
+        text += `  ↳ *Subtotal:* ${formatPrice(itemSubtotal)}\n`;
       });
       total = getTotalPrice();
     }
 
-    text += `\n💵 *TOTAL A PAGAR:* ${formatCOP(total)}\n\n`;
+    text += `\n💵 *TOTAL A PAGAR:* ${formatPrice(total)}\n\n`;
     text += `Quedo atento a la confirmación de mi pedido. ¡Muchas gracias!`;
 
     // Registrar Pedido en la base de datos local del comerciante
@@ -356,7 +359,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
             <span className="hidden sm:inline font-bold">Ver Carrito</span>
             {getTotalItems() > 0 && (
               <span className="font-mono font-black text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
-                {formatCOP(getTotalPrice())}
+                {formatPrice(getTotalPrice())}
               </span>
             )}
           </button>
@@ -468,10 +471,10 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                 <div className="pt-2 border-t border-white/10">
                   <div className="flex items-baseline justify-between mb-4">
                     <div>
-                      <span className="text-2xl font-black tracking-tight" style={{ color: cardTextColor }}>{formatCOP(product.price)}</span>
+                      <span className="text-2xl font-black tracking-tight" style={{ color: cardTextColor }}>{formatPrice(product.price)}</span>
                       {product.comparePrice && product.comparePrice > product.price && (
                         <span className="ml-2.5 text-xs opacity-60 line-through font-semibold" style={{ color: cardTextColor }}>
-                          {formatCOP(product.comparePrice)}
+                          {formatPrice(product.comparePrice)}
                         </span>
                       )}
                     </div>
@@ -570,10 +573,10 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                   <h2 className="text-xl md:text-2xl font-black text-white mt-1 mb-2">{selectedProduct.title}</h2>
                   
                   <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-2xl font-black text-white">{formatCOP(selectedProduct.price)}</span>
+                    <span className="text-2xl font-black text-white">{formatPrice(selectedProduct.price)}</span>
                     {selectedProduct.comparePrice && selectedProduct.comparePrice > selectedProduct.price && (
                       <span className="text-sm text-slate-500 line-through font-semibold">
-                        {formatCOP(selectedProduct.comparePrice)}
+                        {formatPrice(selectedProduct.comparePrice)}
                       </span>
                     )}
                   </div>
@@ -832,13 +835,13 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                   {singleDirectProduct ? (
                     <div className="flex justify-between text-xs font-bold text-white">
                       <span>• {singleDirectProduct.product.title} (x{singleDirectProduct.quantity})</span>
-                      <span className="text-emerald-400">{formatCOP(singleDirectProduct.product.price * singleDirectProduct.quantity)}</span>
+                      <span className="text-emerald-400">{formatPrice(singleDirectProduct.product.price * singleDirectProduct.quantity)}</span>
                     </div>
                   ) : (
                     items.map(item => (
                       <div key={item.id} className="flex justify-between text-xs font-bold text-white">
                         <span>• {item.title} (x{item.quantity})</span>
-                        <span className="text-emerald-400">{formatCOP(item.price * item.quantity)}</span>
+                        <span className="text-emerald-400">{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     ))
                   )}
@@ -846,7 +849,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
                   <div className="pt-2 border-t border-slate-800 flex justify-between text-sm font-black text-white">
                     <span>TOTAL:</span>
                     <span className="text-emerald-400 font-mono">
-                      {formatCOP(singleDirectProduct ? singleDirectProduct.product.price * singleDirectProduct.quantity : getTotalPrice())}
+                      {formatPrice(singleDirectProduct ? singleDirectProduct.product.price * singleDirectProduct.quantity : getTotalPrice())}
                     </span>
                   </div>
                 </div>
@@ -925,7 +928,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
 
             <div className="flex flex-col text-left leading-tight">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Ver Carrito</span>
-              <span className="font-mono text-sm font-black text-emerald-400">{formatCOP(getTotalPrice())}</span>
+              <span className="font-mono text-sm font-black text-emerald-400">{formatPrice(getTotalPrice())}</span>
             </div>
 
             <div className="h-8 w-8 rounded-xl bg-slate-800 text-slate-200 group-hover:bg-[#0052FF] group-hover:text-white flex items-center justify-center transition-colors ml-1">

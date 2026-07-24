@@ -1057,6 +1057,53 @@ export default function MerchantDashboard() {
                   </div>
                 </div>
 
+                {/* CONFIGURACIÓN DE MONEDA DE LA TIENDA (INTERNACIONAL COP / USD) */}
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-200 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-[#25D366]" /> Moneda de Exhibición de Precios (Soporte Internacional)
+                    </label>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">
+                      {storeConfig.currency || "COP"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Escoge si los precios de tu catálogo se muestran en Pesos Colombianos (COP) o Dólares ($ USD).</p>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setStoreConfig({ ...storeConfig, currency: "COP" })}
+                      className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                        (storeConfig.currency || "COP") === "COP"
+                          ? "bg-emerald-500/20 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500"
+                          : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🇨🇴</span>
+                        <span className="text-xs font-bold">Pesos Colombianos</span>
+                      </div>
+                      <span className="text-xs font-mono font-black text-emerald-400">COP</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setStoreConfig({ ...storeConfig, currency: "USD" })}
+                      className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
+                        storeConfig.currency === "USD"
+                          ? "bg-emerald-500/20 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500"
+                          : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🌎</span>
+                        <span className="text-xs font-bold">Dólares ($ USD)</span>
+                      </div>
+                      <span className="text-xs font-mono font-black text-emerald-400">USD</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* 2. SELECTOR PERSONALIZADO DE COLORES & COMBINADOR LIBRE */}
                 <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-5">
                   <div>

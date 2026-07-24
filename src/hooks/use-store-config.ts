@@ -28,6 +28,7 @@ export interface StoreConfig {
   initialSetupCompleted?: boolean;
   tutorialSeen?: boolean;
   niche?: "ZAPATOS" | "ROPA" | "COMIDA" | "SALUD" | "TECNOLOGIA" | "GENERAL";
+  currency?: "COP" | "USD";
 }
 
 export interface ProductItem {
@@ -100,6 +101,7 @@ const DEFAULT_STORE_CONFIG: StoreConfig = {
   initialSetupCompleted: false,
   tutorialSeen: false,
   niche: "GENERAL",
+  currency: "COP",
 };
 
 const DEFAULT_PRODUCTS: ProductItem[] = [];

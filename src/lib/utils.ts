@@ -5,15 +5,28 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCOP(amount: number | string): string {
+export function formatCurrency(amount: number | string, currency: string = "COP"): string {
   const numericAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(numericAmount)) return "$ 0";
+  if (isNaN(numericAmount)) return currency === "USD" ? "$ 0.00 USD" : "$ 0 COP";
+
+  if (currency?.toUpperCase() === "USD") {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numericAmount) + " USD";
+  }
 
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(numericAmount);
+}
+
+export function formatCOP(amount: number | string, currency: string = "COP"): string {
+  return formatCurrency(amount, currency);
 }
 
 /**
