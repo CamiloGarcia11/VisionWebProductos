@@ -1170,10 +1170,10 @@ export default function MerchantDashboard() {
                         </div>
 
                         <div className="space-y-1 overflow-hidden">
-                          <h5 className="font-black text-white text-sm truncate">{currentProducts[0]?.title || "Camiseta Oversize Algodón 100%"}</h5>
-                          <p className="text-xs text-slate-400 truncate">100% Algodón Nacional • Envío Inmediato a Todo Colombia</p>
+                          <h5 className="font-black text-white text-sm truncate">{currentProducts[0]?.title || "Tu Producto de Ejemplo"}</h5>
+                          <p className="text-xs text-slate-400 truncate">Calidad Premium • Envíos a Todo el País</p>
                           <div className="flex items-center gap-2 pt-1">
-                            <span className="font-black text-emerald-400 text-sm">{formatCOP(currentProducts[0]?.price || 55000)}</span>
+                            <span className="font-black text-emerald-400 text-sm">{formatCOP(currentProducts[0]?.price || 49000)}</span>
                             {currentProducts[0]?.comparePrice && (
                               <span className="text-xs text-slate-500 line-through">{formatCOP(currentProducts[0].comparePrice)}</span>
                             )}

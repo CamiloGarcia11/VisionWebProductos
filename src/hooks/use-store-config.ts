@@ -93,66 +93,9 @@ const DEFAULT_STORE_CONFIG: StoreConfig = {
   tutorialSeen: false,
 };
 
-const DEFAULT_PRODUCTS: ProductItem[] = [
-  { 
-    id: "1", 
-    title: "Camiseta Oversize Algodón 100%", 
-    price: 55000, 
-    comparePrice: 75000, 
-    specifications: "Material: 100% Algodón de alta densidad | Lavado: Agua fría | Tallas: S - XL",
-    stock: 14, 
-    isActive: true, 
-    imageUrl: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop" 
-  },
-  { 
-    id: "2", 
-    title: "Chaqueta Denim Vintage", 
-    price: 120000, 
-    comparePrice: 150000, 
-    specifications: "Tela: Jean 14 oz rígido | Botones: Acero reforzado | Origen: Hecho en Colombia",
-    stock: 2, // Menos de 3 para probar la alerta de Últimas Unidades
-    isActive: true, 
-    imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop" 
-  },
-  { 
-    id: "3", 
-    title: "Tenis Urban Comfort White", 
-    price: 180000, 
-    comparePrice: 220000, 
-    specifications: "Suela: EVA ultraligera | Capellada: Cuero sintético Premium | Plantilla: Ergonómica",
-    stock: 9, 
-    isActive: true, 
-    imageUrl: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&auto=format&fit=crop" 
-  },
-];
+const DEFAULT_PRODUCTS: ProductItem[] = [];
 
-const DEFAULT_ORDERS: OrderItem[] = [
-  { 
-    id: "ORD-101", 
-    customerName: "María Paula Gómez", 
-    customerCity: "Bogotá",
-    customerAddress: "Calle 127 #15-45",
-    total: 175000, 
-    status: "PENDING", 
-    date: "23/07/2026, 03:45 PM",
-    items: [
-      { id: "1", title: "Camiseta Oversize Algodón 100%", price: 55000, quantity: 1, imageUrl: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop" },
-      { id: "2", title: "Chaqueta Denim Vintage", price: 120000, quantity: 1, imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop" }
-    ]
-  },
-  { 
-    id: "ORD-102", 
-    customerName: "Andrés Felipe Ríos", 
-    customerCity: "Medellín",
-    customerAddress: "Cra 43A #1-50",
-    total: 180000, 
-    status: "PAID", 
-    date: "23/07/2026, 02:10 PM",
-    items: [
-      { id: "3", title: "Tenis Urban Comfort White", price: 180000, quantity: 1, imageUrl: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&auto=format&fit=crop" }
-    ]
-  }
-];
+const DEFAULT_ORDERS: OrderItem[] = [];
 
 export const useStoreConfig = create<StoreState>()(
   persist(
