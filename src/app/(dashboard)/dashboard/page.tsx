@@ -7,6 +7,7 @@ import { Logo } from "@/components/shared/logo";
 import { AdBannerModule } from "@/components/dashboard/ad-banner-module";
 import { ImageAdjusterModal } from "@/components/dashboard/image-adjuster-modal";
 import { useStoreConfig, StoreConfig, ProductItem, OrderItem } from "@/hooks/use-store-config";
+import { generateWhatsAppSaaSLink } from "@/lib/subscription-payment";
 import { 
   Store, 
   ShoppingBag, 
@@ -135,6 +136,17 @@ export default function MerchantDashboard() {
   const isProPlan = isVipPlan || planUpper.includes("PRO") || planUpper.includes("NEGOCIO");
   const isEmprendedorPlan = isProPlan || planUpper.includes("BASICO") || planUpper.includes("EMPRENDEDOR");
   const isPlusPlan = isProPlan;
+
+  // Ocultar pestañas no contratadas y redirigir a 'products' si intenta ingresar por URL o estado
+  useEffect(() => {
+    if (activeTab === "metrics" && !isEmprendedorPlan) {
+      setActiveTab("products");
+    } else if (activeTab === "branding" && !isProPlan) {
+      setActiveTab("products");
+    } else if (activeTab === "advertising" && !isVipPlan) {
+      setActiveTab("products");
+    }
+  }, [activeTab, isEmprendedorPlan, isProPlan, isVipPlan]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -433,43 +445,7 @@ export default function MerchantDashboard() {
           </div>
 
           <nav className="flex md:flex-col overflow-x-auto md:overflow-visible gap-1.5 text-xs font-bold whitespace-nowrap md:whitespace-normal scrollbar-none">
-            <button
-              onClick={() => setActiveTab("metrics")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
-                activeTab === "metrics" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-4 w-4 shrink-0" />
-                <span>Métricas & Resumen</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("branding")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
-                activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Palette className="h-4 w-4 text-[#25D366] shrink-0" />
-                <span>Logo & Colores Globales</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("advertising")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
-                activeTab === "advertising" ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Megaphone className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>Publicidad & Banners HD</span>
-              </div>
-              <span className="bg-purple-500/20 text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-black shrink-0">VIP</span>
-            </button>
-
+            {/* 1. PRODUCTOS E INVENTARIO (DISPONIBLE EN TODOS LOS PLANES) */}
             <button
               onClick={() => setActiveTab("products")}
               className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
@@ -482,6 +458,7 @@ export default function MerchantDashboard() {
               </div>
             </button>
 
+            {/* 2. PEDIDOS REGISTRADOS (DISPONIBLE EN TODOS LOS PLANES) */}
             <button
               onClick={() => setActiveTab("orders")}
               className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
@@ -499,6 +476,53 @@ export default function MerchantDashboard() {
               )}
             </button>
 
+            {/* 3. MÉTRICAS & RESUMEN (SOLO SI EL PLAN LO TIENE HABILITADO) */}
+            {isEmprendedorPlan && (
+              <button
+                onClick={() => setActiveTab("metrics")}
+                className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
+                  activeTab === "metrics" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-4 w-4 shrink-0" />
+                  <span>Métricas & Resumen</span>
+                </div>
+              </button>
+            )}
+
+            {/* 4. LOGO & COLORES GLOBALES (SOLO SI EL PLAN ES PRO O VIP) */}
+            {isProPlan && (
+              <button
+                onClick={() => setActiveTab("branding")}
+                className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
+                  activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Palette className="h-4 w-4 text-[#25D366] shrink-0" />
+                  <span>Logo & Colores Globales</span>
+                </div>
+              </button>
+            )}
+
+            {/* 5. PUBLICIDAD & BANNERS HD (SOLO SI EL PLAN ES EMPRESA VIP) */}
+            {isVipPlan && (
+              <button
+                onClick={() => setActiveTab("advertising")}
+                className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
+                  activeTab === "advertising" ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Megaphone className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>Publicidad & Banners HD</span>
+                </div>
+                <span className="bg-purple-500/20 text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-black shrink-0">VIP</span>
+              </button>
+            )}
+
+            {/* 6. MI PLAN & LICENCIA (SIEMPRE DISPONIBLE PARA VER DETALLES Y CAMBIAR) */}
             <button
               onClick={() => setActiveTab("subscription")}
               className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
@@ -1409,14 +1433,184 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* TAB 6: SUSCRIPCIÓN */}
+        {/* TAB 6: SUSCRIPCIÓN Y DETALLE DE PLANES */}
         {activeTab === "subscription" && (
-          <div className="bg-slate-900 rounded-3xl border border-slate-800 p-8 shadow-xl">
-            <h2 className="text-xl font-black text-white mb-2">Estado de Tu Plan & Licencia</h2>
-            <p className="text-xs text-slate-400 mb-6">Tu plan actual es <strong className="text-white">{storeConfig.plan}</strong> con {storeConfig.daysRemaining} días restantes.</p>
-            <Link href="/dashboard/subscription" className="bg-[#0052FF] hover:bg-[#0043D6] text-white text-xs font-bold px-5 py-3 rounded-xl inline-block shadow-lg">
-              Renovar o Cambiar Plan
-            </Link>
+          <div className="space-y-8">
+            {/* Estado de Licencia Actual */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold mb-3">
+                    <Sparkles className="h-3.5 w-3.5" /> Plan Activo en Tu Cuenta
+                  </span>
+                  <h2 className="text-2xl font-black text-white uppercase">{storeConfig.plan || "FREE_TRIAL"}</h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Los módulos habilitados en tu menú lateral corresponden al plan que tienes contratado activamente.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-4 shrink-0">
+                  <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black text-white">{storeConfig.daysRemaining || 15} Días</p>
+                    <p className="text-[11px] text-slate-400">Restantes de Licencia Activa</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Listado de Características de Cada Plan */}
+            <div>
+              <div className="mb-6">
+                <h2 className="text-xl font-black text-white">Detalle de Planes & Módulos Disponibles</h2>
+                <p className="text-xs text-slate-400 mt-1">Revisa lo que incluye cada plan. Al solicitar o cambiar de plan por WhatsApp, los módulos correspondientes se activan en tu cuenta.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                {/* 1. PLAN PRUEBA GRATIS (15 DÍAS) */}
+                <div className={`rounded-3xl border p-6 flex flex-col justify-between transition-all ${
+                  planUpper.includes("FREE")
+                    ? "bg-slate-900/90 border-emerald-500 ring-2 ring-emerald-500/30"
+                    : "bg-slate-900 border-slate-800"
+                }`}>
+                  <div>
+                    {planUpper.includes("FREE") && (
+                      <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider block w-fit mb-3">
+                        ✅ PLAN EN USO ACTUALMENTE
+                      </span>
+                    )}
+                    <h3 className="text-lg font-bold text-white">1. Prueba Gratis</h3>
+                    <p className="text-xs text-slate-400 mt-1">15 Días sin costo</p>
+                    <div className="my-4">
+                      <span className="text-3xl font-black text-white">$0 COP</span>
+                      <span className="text-slate-400 text-xs"> / 15 días</span>
+                    </div>
+                    <ul className="space-y-2.5 text-xs text-slate-300 font-medium mb-6">
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Tienda Web con Enlace /slug</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Gestión de Productos e Inventario</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Pedidos por WhatsApp Directos</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 2. PLAN EMPRENDEDOR EXPRESS ($15.000 COP) */}
+                <div className={`rounded-3xl border p-6 flex flex-col justify-between transition-all ${
+                  planUpper.includes("BASICO") || planUpper.includes("EMPRENDEDOR")
+                    ? "bg-slate-900/90 border-emerald-500 ring-2 ring-emerald-500/30"
+                    : "bg-slate-900 border-slate-800"
+                }`}>
+                  <div>
+                    {(planUpper.includes("BASICO") || planUpper.includes("EMPRENDEDOR")) && (
+                      <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider block w-fit mb-3">
+                        ✅ PLAN EN USO ACTUALMENTE
+                      </span>
+                    )}
+                    <h3 className="text-lg font-bold text-white">2. Emprendedor Express</h3>
+                    <p className="text-xs text-slate-400 mt-1">Ventas activas + Métricas</p>
+                    <div className="my-4">
+                      <span className="text-3xl font-black text-white">$15.000</span>
+                      <span className="text-slate-400 text-xs"> COP / mes</span>
+                    </div>
+                    <ul className="space-y-2.5 text-xs text-slate-300 font-medium mb-6">
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Todo lo del Plan Prueba</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Módulo de Métricas & Estadísticas</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Pedidos por WhatsApp Ilimitados</li>
+                    </ul>
+                  </div>
+                  <a
+                    href={generateWhatsAppSaaSLink("BASICO", storeConfig.email, storeConfig.storeName, storeConfig.whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-lg"
+                  >
+                    <MessageSquare className="h-4 w-4 fill-slate-950" /> Contratar por WhatsApp ($15.000)
+                  </a>
+                </div>
+
+                {/* 3. PLAN NEGOCIO PRO ($20.000 COP) */}
+                <div className={`rounded-3xl border-2 p-6 flex flex-col justify-between transition-all ${
+                  planUpper.includes("PRO") || planUpper.includes("NEGOCIO")
+                    ? "bg-slate-900/90 border-emerald-500 ring-2 ring-emerald-500/30"
+                    : "bg-slate-900 border-[#0052FF]"
+                }`}>
+                  <div>
+                    {(planUpper.includes("PRO") || planUpper.includes("NEGOCIO")) && (
+                      <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider block w-fit mb-3">
+                        ✅ PLAN EN USO ACTUALMENTE
+                      </span>
+                    )}
+                    <h3 className="text-lg font-bold text-white">3. Negocio Pro</h3>
+                    <p className="text-xs text-slate-400 mt-1">Branding + Métricas Pro</p>
+                    <div className="my-4">
+                      <span className="text-3xl font-black text-white">$20.000</span>
+                      <span className="text-slate-400 text-xs"> COP / mes</span>
+                    </div>
+                    <ul className="space-y-2.5 text-xs text-slate-300 font-medium mb-6">
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#60A5FA] shrink-0" /> Todo lo del Plan Básico</li>
+                      <li className="flex items-center gap-2"><Palette className="h-4 w-4 text-[#60A5FA] shrink-0" /> Módulo de Logo & Colores Globales</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#60A5FA] shrink-0" /> Tipografías Google Fonts de Lujo</li>
+                    </ul>
+                  </div>
+                  <a
+                    href={generateWhatsAppSaaSLink("PRO", storeConfig.email, storeConfig.storeName, storeConfig.whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#0052FF] hover:bg-[#0043D6] text-white font-black py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-lg"
+                  >
+                    <MessageSquare className="h-4 w-4" /> Contratar por WhatsApp ($20.000)
+                  </a>
+                </div>
+
+                {/* 4. PLAN EMPRESA ÉLITE VIP ($25.000 COP) */}
+                <div className={`rounded-3xl border-2 p-6 flex flex-col justify-between transition-all ${
+                  isVipPlan
+                    ? "bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-900 border-emerald-500 ring-2 ring-emerald-500/30"
+                    : "bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-900 border-purple-500/50"
+                }`}>
+                  <div>
+                    {isVipPlan && (
+                      <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider block w-fit mb-3">
+                        ✅ PLAN EN USO ACTUALMENTE
+                      </span>
+                    )}
+                    <h3 className="text-lg font-black text-white flex items-center gap-1.5">
+                      4. Empresa Élite VIP <Sparkles className="h-4 w-4 text-amber-400 fill-amber-400" />
+                    </h3>
+                    <p className="text-xs text-purple-300 font-bold mt-1">Acceso Total a la Plataforma</p>
+                    <div className="my-4">
+                      <span className="text-3xl font-black text-white">$25.000</span>
+                      <span className="text-slate-400 text-xs"> COP / mes</span>
+                    </div>
+                    <ul className="space-y-2 text-xs text-slate-200 font-medium mb-6">
+                      <li className="flex items-center gap-2 font-bold text-amber-400">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" /> Acceso Total sin Restricciones
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Megaphone className="h-3.5 w-3.5 text-purple-400 shrink-0" /> Publicidad & Banners HD
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Resumen Financiero Mensual
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Soporte Prioritario VIP 24/7
+                      </li>
+                    </ul>
+                  </div>
+                  <a
+                    href={generateWhatsAppSaaSLink("EMPRESA", storeConfig.email, storeConfig.storeName, storeConfig.whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-black py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-xl"
+                  >
+                    <MessageSquare className="h-4 w-4" /> Contratar VIP por WhatsApp ($25.000)
+                  </a>
+                </div>
+
+              </div>
+            </div>
           </div>
         )}
 
