@@ -141,12 +141,10 @@ export default function MerchantDashboard() {
   useEffect(() => {
     if (activeTab === "metrics" && !isEmprendedorPlan) {
       setActiveTab("products");
-    } else if (activeTab === "branding" && !isProPlan) {
-      setActiveTab("products");
     } else if (activeTab === "advertising" && !isVipPlan) {
       setActiveTab("products");
     }
-  }, [activeTab, isEmprendedorPlan, isProPlan, isVipPlan]);
+  }, [activeTab, isEmprendedorPlan, isVipPlan]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -430,18 +428,32 @@ export default function MerchantDashboard() {
             </span>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl mb-6 flex items-center gap-3 shadow-inner">
-            {storeConfig.logoUrl ? (
-              <img src={storeConfig.logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover border border-slate-700 bg-slate-900 shrink-0" />
-            ) : (
-              <div className="h-10 w-10 rounded-xl bg-[#0052FF] text-white flex items-center justify-center font-black shrink-0">
-                {(storeConfig.storeName || "TV").substring(0, 2).toUpperCase()}
+          <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl mb-6 flex flex-col gap-3 shadow-inner">
+            <div className="flex items-center gap-3">
+              {storeConfig.logoUrl ? (
+                <img src={storeConfig.logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover border border-slate-700 bg-slate-900 shrink-0" />
+              ) : (
+                <div className="h-10 w-10 rounded-xl bg-[#0052FF] text-white flex items-center justify-center font-black shrink-0">
+                  {(storeConfig.storeName || "TV").substring(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div className="overflow-hidden">
+                <h3 className="font-bold text-white text-xs truncate">{storeConfig.storeName || "Mi Tienda"}</h3>
+                <p className="text-[11px] text-slate-400 font-mono truncate">/{storeConfig.slug || "mi-tienda"}</p>
               </div>
-            )}
-            <div className="overflow-hidden">
-              <h3 className="font-bold text-white text-xs truncate">{storeConfig.storeName || "Mi Tienda"}</h3>
-              <p className="text-[11px] text-slate-400 font-mono truncate">/{storeConfig.slug || "mi-tienda"}</p>
             </div>
+
+            {/* BOTÓN DIRECTO SIEMPRE VISIBLE PARA VER TIENDA PÚBLICA */}
+            <a
+              href={`/${storeConfig.slug || 'mi-tienda'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-md"
+            >
+              <Eye className="h-4 w-4 fill-slate-950 shrink-0" />
+              <span>Ver Mi Tienda Web</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            </a>
           </div>
 
           <nav className="flex md:flex-col overflow-x-auto md:overflow-visible gap-1.5 text-xs font-bold whitespace-nowrap md:whitespace-normal scrollbar-none">
@@ -476,7 +488,20 @@ export default function MerchantDashboard() {
               )}
             </button>
 
-            {/* 3. MÉTRICAS & RESUMEN (SOLO SI EL PLAN LO TIENE HABILITADO) */}
+            {/* 3. LOGO, COLORES & FUENTES (DISPONIBLE EN TODOS LOS PLANES INCLUYENDO GRATIS) */}
+            <button
+              onClick={() => setActiveTab("branding")}
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
+                activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Palette className="h-4 w-4 text-[#25D366] shrink-0" />
+                <span>Logo, Colores & Fuentes</span>
+              </div>
+            </button>
+
+            {/* 4. MÉTRICAS & RESUMEN (SOLO SI EL PLAN LO TIENE HABILITADO) */}
             {isEmprendedorPlan && (
               <button
                 onClick={() => setActiveTab("metrics")}
@@ -487,21 +512,6 @@ export default function MerchantDashboard() {
                 <div className="flex items-center gap-3">
                   <TrendingUp className="h-4 w-4 shrink-0" />
                   <span>Métricas & Resumen</span>
-                </div>
-              </button>
-            )}
-
-            {/* 4. LOGO & COLORES GLOBALES (SOLO SI EL PLAN ES PRO O VIP) */}
-            {isProPlan && (
-              <button
-                onClick={() => setActiveTab("branding")}
-                className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
-                  activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Palette className="h-4 w-4 text-[#25D366] shrink-0" />
-                  <span>Logo & Colores Globales</span>
                 </div>
               </button>
             )}
@@ -869,38 +879,10 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* TAB 1: BRANDING & DATOS DE LA TIENDA */}
+        {/* TAB 1: BRANDING & DATOS DE LA TIENDA (DISPONIBLE PARA TODOS LOS PLANES) */}
         {activeTab === "branding" && (
           <div className="space-y-6">
-            {!isProPlan && (
-              <div className="bg-slate-900 border-2 border-[#0052FF]/40 rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-[#0052FF] text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-[#0052FF]/30">
-                    <Palette className="h-6 w-6 text-[#25D366]" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-[#0052FF]/20 text-[#60A5FA] rounded-full border border-[#0052FF]/30">
-                      🔒 MÓDULO EXCLUSIVO PLAN NEGOCIO PRO ($20.000 COP) & EMPRESA VIP ($25.000 COP)
-                    </span>
-                    <h3 className="text-base font-black text-white mt-1">Logo Oficial y Colores de Marca Personalizados</h3>
-                    <p className="text-xs text-slate-300">
-                      Estás en el <strong>Plan Prueba Gratis (15 Días)</strong>. Para subir tu logo oficial y personalizar tus 2 colores de marca, actualiza a un plan de pago.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("subscription")}
-                  className="bg-[#0052FF] hover:bg-[#0043D6] text-white font-black px-5 py-3 rounded-xl text-xs shrink-0 shadow-lg shadow-[#0052FF]/30 hover:scale-105 transition"
-                >
-                  🚀 Cambiar a Plan Negocio Pro
-                </button>
-              </div>
-            )}
-
-            <div className={!isProPlan ? "opacity-50 pointer-events-none select-none blur-[0.5px]" : ""}>
-              <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 shadow-xl">
+            <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 shadow-xl">
               <div className="pb-4 border-b border-slate-800 mb-6">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
                   <Palette className="h-6 w-6 text-[#0052FF]" /> Nombre de Tienda, Enlace Web, Logo & Colores
@@ -1218,7 +1200,6 @@ export default function MerchantDashboard() {
                   </button>
                 </div>
               </form>
-            </div>
             </div>
           </div>
         )}
