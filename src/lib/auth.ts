@@ -185,14 +185,14 @@ export async function ensureSuperAdminExists() {
           email: adminEmail,
           passwordHash: hashedPassword,
           fullName: "Super Admin VisionWeb",
-          phoneNumber: "573000000000",
+          phoneNumber: "573052311490",
           role: "SUPER_ADMIN",
           isActive: true,
           stores: {
             create: {
               storeName: "Plataforma VisionWeb Admin",
               slug: "visionweb-admin",
-              whatsappNumber: "573000000000",
+              whatsappNumber: "573052311490",
             },
           },
         },

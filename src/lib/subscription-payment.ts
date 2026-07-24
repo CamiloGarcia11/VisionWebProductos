@@ -92,7 +92,7 @@ export function getModulesForPlan(plan: string) {
 /**
  * Número de WhatsApp por defecto del Administrador de la plataforma para recibir solicitudes de arriendo/pago.
  */
-export const ADMIN_WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "573000000000";
+export const ADMIN_WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "573052311490";
 
 /**
  * Genera el enlace directo a WhatsApp especificando exactamente el plan que desea contratar la persona.
