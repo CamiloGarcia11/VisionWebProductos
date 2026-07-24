@@ -105,11 +105,6 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-          <p className="text-xs text-slate-400">
-            Credenciales iniciales por defecto: <code className="text-slate-200 font-mono">admin@visionweb.com</code> / <code className="text-slate-200 font-mono">admin123456</code>
-          </p>
-        </div>
       </div>
     </div>
   );
