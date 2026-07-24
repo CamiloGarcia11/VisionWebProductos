@@ -125,3 +125,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #0052FF;
 }
+
+/* Ocultar totalmente la barra de desplazamiento en contenedores con .scrollbar-none */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

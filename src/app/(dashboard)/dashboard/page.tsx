@@ -93,17 +93,37 @@ export default function MerchantDashboard() {
   // Estado local para los formularios del usuario
   const [storeConfig, setStoreConfig] = useState<StoreConfig>(globalStoreConfig);
 
-  // Sincronizar tras montaje en cliente
+  // Sincronizar tras montaje en cliente con los datos reales de PostgreSQL
   useEffect(() => {
     setMounted(true);
     setStoreConfig(globalStoreConfig);
-  }, [globalStoreConfig]);
 
-  const isPlusPlan = 
-    storeConfig.plan?.toUpperCase().includes("PRO") ||
-    storeConfig.plan?.toUpperCase().includes("EMPRESA") ||
-    storeConfig.plan?.toUpperCase().includes("VIP") ||
-    storeConfig.plan?.toUpperCase().includes("NEGOCIO");
+    fetch("/api/v1/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user?.stores?.[0]) {
+          const s = data.user.stores[0];
+          const activeStoreConfig: StoreConfig = {
+            ...globalStoreConfig,
+            name: data.user.fullName || globalStoreConfig.name,
+            email: data.user.email || globalStoreConfig.email,
+            storeName: s.storeName || globalStoreConfig.storeName,
+            slug: s.slug || globalStoreConfig.slug,
+            logoUrl: s.logoUrl !== undefined && s.logoUrl !== null ? s.logoUrl : globalStoreConfig.logoUrl,
+            whatsapp: data.user.phoneNumber || s.whatsappNumber || globalStoreConfig.whatsapp,
+          };
+          setStoreConfig(activeStoreConfig);
+          saveStoreConfig(activeStoreConfig);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const planUpper = (storeConfig.plan || "FREE_TRIAL").toUpperCase();
+  const isVipPlan = planUpper.includes("EMPRESA") || planUpper.includes("VIP");
+  const isProPlan = isVipPlan || planUpper.includes("PRO") || planUpper.includes("NEGOCIO");
+  const isEmprendedorPlan = isProPlan || planUpper.includes("BASICO") || planUpper.includes("EMPRENDEDOR");
+  const isPlusPlan = isProPlan;
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -376,9 +396,9 @@ export default function MerchantDashboard() {
       )}
 
       {/* Sidebar Desktop */}
-      <aside className="w-full md:w-72 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0">
+      <aside className="w-full md:w-72 bg-slate-900 border-r border-slate-800/80 p-5 md:p-6 flex flex-col justify-between shrink-0">
         <div>
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <Link href="/">
               <Logo className="h-10" variant="dark" />
             </Link>
@@ -387,75 +407,82 @@ export default function MerchantDashboard() {
             </span>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl mb-8 flex items-center gap-3">
+          <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl mb-6 flex items-center gap-3 shadow-inner">
             {storeConfig.logoUrl ? (
-              <img src={storeConfig.logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover border border-slate-700" />
+              <img src={storeConfig.logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover border border-slate-700 bg-slate-900 shrink-0" />
             ) : (
-              <div className="h-10 w-10 rounded-xl bg-[#0052FF] text-white flex items-center justify-center font-bold">
-                {storeConfig.storeName.substring(0, 2).toUpperCase()}
+              <div className="h-10 w-10 rounded-xl bg-[#0052FF] text-white flex items-center justify-center font-black shrink-0">
+                {(storeConfig.storeName || "TV").substring(0, 2).toUpperCase()}
               </div>
             )}
             <div className="overflow-hidden">
-              <h3 className="font-bold text-white text-xs truncate">{storeConfig.storeName}</h3>
-              <p className="text-[11px] text-slate-400 truncate">/{storeConfig.slug}</p>
+              <h3 className="font-bold text-white text-xs truncate">{storeConfig.storeName || "Mi Tienda"}</h3>
+              <p className="text-[11px] text-slate-400 font-mono truncate">/{storeConfig.slug || "mi-tienda"}</p>
             </div>
           </div>
 
-          <nav className="flex md:flex-col overflow-x-auto gap-2 pb-2 md:pb-0 text-xs font-bold whitespace-nowrap scrollbar-none">
+          <nav className="flex md:flex-col overflow-x-auto md:overflow-visible gap-1.5 text-xs font-bold whitespace-nowrap md:whitespace-normal scrollbar-none">
             <button
               onClick={() => setActiveTab("metrics")}
-              className={`shrink-0 md:w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "metrics" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
-              <TrendingUp className="h-4 w-4" /> Métricas & Resumen
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-4 w-4 shrink-0" />
+                <span>Métricas & Resumen</span>
+              </div>
             </button>
 
             <button
               onClick={() => setActiveTab("branding")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Palette className="h-4 w-4 text-[#25D366]" /> Logo & Colores Globales
+                <Palette className="h-4 w-4 text-[#25D366] shrink-0" />
+                <span>Logo & Colores Globales</span>
               </div>
             </button>
 
             <button
               onClick={() => setActiveTab("advertising")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "advertising" ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Megaphone className="h-4 w-4 text-amber-400" /> Publicidad & Banners HD
+                <Megaphone className="h-4 w-4 text-amber-400 shrink-0" />
+                <span>Publicidad & Banners HD</span>
               </div>
-              <span className="bg-purple-500/20 text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-black">PREMIUM</span>
+              <span className="bg-purple-500/20 text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-black shrink-0">VIP</span>
             </button>
 
             <button
               onClick={() => setActiveTab("products")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "products" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <ShoppingBag className="h-4 w-4" /> Productos ({currentProducts.length})
+                <ShoppingBag className="h-4 w-4 shrink-0" />
+                <span>Productos ({currentProducts.length})</span>
               </div>
             </button>
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "orders" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <PackageCheck className="h-4 w-4 text-[#25D366]" /> Pedidos Registrados
+                <PackageCheck className="h-4 w-4 text-[#25D366] shrink-0" />
+                <span>Pedidos Registrados</span>
               </div>
               {currentOrders.filter(o => o.status === "PENDING").length > 0 && (
-                <span className="bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black">
+                <span className="bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black shrink-0">
                   {currentOrders.filter(o => o.status === "PENDING").length}
                 </span>
               )}
@@ -463,12 +490,13 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("subscription")}
-              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition ${
                 activeTab === "subscription" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Sparkles className="h-4 w-4 text-[#60A5FA]" /> Mi Plan & Licencia
+                <Sparkles className="h-4 w-4 text-[#60A5FA] shrink-0" />
+                <span>Mi Plan & Licencia</span>
               </div>
             </button>
           </nav>
@@ -1268,16 +1296,47 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* TAB 3: PUBLICIDAD */}
+        {/* TAB 3: PUBLICIDAD (EXCLUSIVO PLAN EMPRESA ÉLITE VIP) */}
         {activeTab === "advertising" && (
-          <AdBannerModule
-            storeName={storeConfig.storeName}
-            logoUrl={storeConfig.logoUrl}
-            whatsapp={storeConfig.whatsapp}
-            products={currentProducts}
-            primaryColor={storeConfig.primaryColor}
-            secondaryColor={storeConfig.secondaryColor}
-          />
+          <div className="space-y-6">
+            {!isVipPlan && (
+              <div className="bg-purple-950/40 border-2 border-purple-500/40 rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-purple-600/30">
+                    <Megaphone className="h-6 w-6 text-amber-300" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                      🔒 MÓDULO EXCLUSIVO PLAN EMPRESA ÉLITE VIP ($25.000 COP/mes)
+                    </span>
+                    <h3 className="text-base font-black text-white mt-1">Generador de Publicidad HD e Impulso VIP</h3>
+                    <p className="text-xs text-slate-300">
+                      Actualiza a Plan Empresa Élite VIP para activar los banners publicitarios automáticos y promocionar tu tienda.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("subscription")}
+                  className="bg-gradient-to-r from-purple-600 to-amber-500 text-slate-950 font-black px-5 py-3 rounded-xl text-xs shrink-0 shadow-lg shadow-purple-600/30 hover:scale-105 transition"
+                >
+                  🚀 Activar Plan Empresa VIP
+                </button>
+              </div>
+            )}
+
+            <div className={!isVipPlan ? "opacity-50 pointer-events-none select-none blur-[0.5px]" : ""}>
+              <AdBannerModule
+                storeName={storeConfig.storeName}
+                logoUrl={storeConfig.logoUrl}
+                whatsapp={storeConfig.whatsapp}
+                products={currentProducts}
+                primaryColor={storeConfig.primaryColor}
+                secondaryColor={storeConfig.secondaryColor}
+              />
+            </div>
+          </div>
         )}
 
         {/* TAB 6: SUSCRIPCIÓN */}

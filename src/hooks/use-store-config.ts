@@ -72,11 +72,11 @@ interface StoreState {
 }
 
 const DEFAULT_STORE_CONFIG: StoreConfig = {
-  name: "Carlos Mendoza",
-  email: "emprendedor@visionweb.com",
-  storeName: "Moda & Estilo LatAm",
-  slug: "moda-latam",
-  logoUrl: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop",
+  name: "",
+  email: "",
+  storeName: "",
+  slug: "",
+  logoUrl: "",
   logoType: "url",
   primaryColor: "#0052FF",
   secondaryColor: "#25D366",

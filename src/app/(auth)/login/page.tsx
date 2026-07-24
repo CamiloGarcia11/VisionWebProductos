@@ -170,7 +170,7 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-slate-800/80 text-center flex flex-col gap-2">
+      <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
         <p className="text-xs text-slate-400">
           ¿No tienes cuenta todavía?{" "}
           <Link
@@ -178,12 +178,6 @@ function LoginForm() {
             className="text-[#0052FF] font-bold hover:underline"
           >
             Regístrate y prueba 15 Días Gratis
-          </Link>
-        </p>
-        <p className="text-[11px] text-slate-500">
-          ¿Eres Administrador de la Plataforma?{" "}
-          <Link href="/admin/login" className="text-[#60A5FA] font-semibold hover:underline">
-            Ingreso Super Admin
           </Link>
         </p>
       </div>

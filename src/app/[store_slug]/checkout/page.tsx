@@ -4,19 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { MessageSquare, CreditCard, ArrowLeft, ShieldCheck, CheckCircle2, Truck } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { useStoreConfig } from "@/hooks/use-store-config";
 import { formatCOP } from "@/lib/utils";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-formatter";
 
-const MOCK_STORE = {
-  storeName: "Moda & Estilo LatAm",
-  slug: "moda-latam",
-  whatsappNumber: "573001234567",
-  enableWhatsapp: true,
-  enableGateway: true,
-};
-
 export default function CheckoutPage({ params }: { params: { store_slug: string } }) {
   const { items, getTotalPrice, clearCart } = useCart();
+  const { storeConfig } = useStoreConfig();
+
+  const storeName = storeConfig.storeName || params.store_slug || "Mi Tienda Web";
+  const whatsappNumber = storeConfig.whatsapp || "573001234567";
+  const slug = storeConfig.slug || params.store_slug || "tu-tienda";
 
   const [customer, setCustomer] = useState({
     fullName: "",
@@ -38,8 +36,8 @@ export default function CheckoutPage({ params }: { params: { store_slug: string 
     }
 
     const url = buildWhatsAppUrl(
-      MOCK_STORE.whatsappNumber,
-      MOCK_STORE.storeName,
+      whatsappNumber,
+      storeName,
       items,
       getTotalPrice(),
       customer
@@ -71,7 +69,7 @@ export default function CheckoutPage({ params }: { params: { store_slug: string 
         <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center max-w-md w-full shadow-sm">
           <h2 className="text-xl font-bold text-slate-900 mb-2">Tu carrito está vacío</h2>
           <p className="text-sm text-slate-500 mb-6">Regresa al catálogo para seleccionar tus productos.</p>
-          <Link href={`/${MOCK_STORE.slug}`} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl inline-block text-sm">
+          <Link href={`/${slug}`} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl inline-block text-sm">
             Volver a la Tienda
           </Link>
         </div>
@@ -82,18 +80,16 @@ export default function CheckoutPage({ params }: { params: { store_slug: string 
   if (orderCompleted) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center max-w-md w-full shadow-md">
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center max-w-md w-full shadow-sm">
           <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
+            <CheckCircle2 className="h-8 w-8" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">¡Pedido Procesado con Éxito!</h2>
-          <p className="text-sm text-slate-600 mb-6">
-            {paymentMode === "WHATSAPP"
-              ? "Tu pedido ha sido enviado al WhatsApp del vendedor. Por favor confirma los datos en el chat."
-              : "Pago recibido satisfactoriamente por Pasarela Directa (Wompi / Mercado Pago). El vendedor enviará el paquete pronto."}
+          <h2 className="text-xl font-bold text-slate-900 mb-2">¡Pedido Recibido con Éxito!</h2>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            Hemos procesado la información de tu orden para <strong className="text-slate-900">{storeName}</strong>. Te contactaremos vía WhatsApp para confirmar el despacho.
           </p>
-          <Link href={`/${MOCK_STORE.slug}`} className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl inline-block text-sm w-full">
-            Volver al Catálogo
+          <Link href={`/${slug}`} className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl inline-block text-xs uppercase tracking-wider">
+            Volver a la Tienda
           </Link>
         </div>
       </div>
@@ -103,7 +99,7 @@ export default function CheckoutPage({ params }: { params: { store_slug: string 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <Link href={`/${MOCK_STORE.slug}`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 mb-6">
+        <Link href={`/${slug}`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 mb-6">
           <ArrowLeft className="h-4 w-4" /> Volver al catálogo
         </Link>
 

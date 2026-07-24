@@ -100,7 +100,7 @@ export default function StoreFrontPage({ params }: { params: { store_slug: strin
   };
 
   // Leer valores guardados en localStorage o fallbacks por defecto
-  const storeName = mounted ? storeConfig.storeName : "Moda & Estilo LatAm";
+  const storeName = mounted && storeConfig.storeName ? storeConfig.storeName : (params?.store_slug ? params.store_slug.toUpperCase() : "Mi Tienda Web");
   const logoUrl = mounted ? storeConfig.logoUrl : "";
   const primaryColor = mounted ? storeConfig.primaryColor : "#0052FF";
   const secondaryColor = mounted ? storeConfig.secondaryColor : "#25D366";
