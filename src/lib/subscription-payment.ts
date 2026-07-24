@@ -9,14 +9,14 @@ export interface SubscriptionPlanDetails {
 export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
   FREE_TRIAL: {
     id: "FREE_TRIAL",
-    name: "Plan Prueba Starter (1 Mes Gratis)",
+    name: "Plan Prueba Gratis (15 Días)",
     priceCOP: 0,
-    trialDays: 30,
+    trialDays: 15,
     features: [
-      "Prueba Completa de 1 Mes (30 Días)",
-      "Tienda Web Híbrida con Subdominio",
-      "Checkout Directo a WhatsApp",
-      "Catálogo de Productos Ilimitado",
+      "Prueba Gratis por 15 Días",
+      "Tienda Web con Enlace Personalizado",
+      "Catálogo e Inventario de Productos",
+      "Pedidos por WhatsApp Directos",
     ],
   },
   BASICO: {
@@ -28,20 +28,18 @@ export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
       "Todo lo del Plan Gratuito",
       "Pedidos por WhatsApp Ilimitados",
       "Control de Stock e Inventario",
-      "Soporte Estándar",
+      "Métricas y Reportes Básicos",
     ],
   },
   PRO: {
     id: "PRO",
-    name: "Plan Negocio Pro (Personalizado)",
+    name: "Plan Negocio Pro",
     priceCOP: 20000,
     trialDays: 0,
     features: [
-      "Carga de Logo Oficial Elegante",
-      "Personalización de 2 Colores de Marca",
-      "Productos con Especificaciones Avanzadas",
-      "Guía Rápida Paso a Paso",
-      "Reportes de Ventas y Métricas",
+      "Logo y Colores de Marca Personalizados",
+      "Módulos de Métricas e Inventario Avanzado",
+      "Soporte Estándar",
     ],
   },
   EMPRESA: {
@@ -50,13 +48,45 @@ export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
     priceCOP: 25000,
     trialDays: 0,
     features: [
-      "Todo lo del Plan Negocio Pro",
       "Pasarela de Pago Directa (Wompi / MP)",
       "Dominio Personalizado (.com / .co)",
       "Soporte Prioritario VIP 24/7",
     ],
   },
 };
+
+/**
+ * Retorna los módulos activados automáticamente según el plan asignado/contratado.
+ */
+export function getModulesForPlan(plan: string) {
+  const p = (plan || "FREE").toUpperCase();
+  if (p === "EMPRESA" || p === "PRO_PLUS") {
+    return {
+      whatsapp: true,
+      gateway: true, // Pasarelas de Pago
+      metrics: true,
+      inventory: true,
+      customDomain: true,
+    };
+  } else if (p === "PRO" || p === "EMPRENDEDOR" || p === "BASICO") {
+    return {
+      whatsapp: true,
+      gateway: false,
+      metrics: true,
+      inventory: true,
+      customDomain: false,
+    };
+  } else {
+    // FREE / FREE_TRIAL (Prueba gratis 15 días)
+    return {
+      whatsapp: true,
+      gateway: false,
+      metrics: false,
+      inventory: true,
+      customDomain: false,
+    };
+  }
+}
 
 /**
  * Número de WhatsApp por defecto del Administrador de la plataforma para recibir solicitudes de arriendo/pago.

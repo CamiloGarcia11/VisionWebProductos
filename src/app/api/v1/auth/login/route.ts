@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Buscar usuario en base de datos
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
-      include: { stores: true },
+      include: { stores: true, subscriptions: true },
     });
 
     if (!user) {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verificar hash de contraseña antes de rechazar por inactividad
+    // Verificar hash de contraseña antes de rechazar por inactividad/expiración
     const isValid = await comparePassword(password, user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
@@ -41,12 +41,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Si el usuario no está activo (pendiente de aprobación)
-    if (!user.isActive) {
+    const activeSub = user.subscriptions[0];
+    const isExpired = user.role !== "SUPER_ADMIN" && activeSub?.currentPeriodEnd && new Date(activeSub.currentPeriodEnd) < new Date();
+
+    // Si el usuario no está activo o sus 15 días de prueba finalizaron
+    if (!user.isActive || isExpired) {
+      const storeName = user.stores[0]?.storeName || "Tu Tienda";
       return NextResponse.json(
         { 
-          error: "Tu cuenta se encuentra registrada pero aún no ha sido activada o aprobada por el Administrador. Contacta a soporte vía WhatsApp para acordar la activación de tu plan de prueba.",
-          pendingApproval: true 
+          error: isExpired 
+            ? "Tus 15 días de prueba gratis han finalizado. Para continuar gestionando tu tienda web y subir productos, por favor renueva tu plan o contáctanos directamente por WhatsApp."
+            : "Tu cuenta se encuentra registrada pero aún no ha sido activada o aprobada por el Administrador. Contacta a soporte vía WhatsApp para acordar la activación.",
+          trialExpired: isExpired,
+          pendingApproval: !user.isActive && !isExpired,
+          storeName,
+          email: user.email,
+          phone: user.phoneNumber,
+          plan: activeSub?.plan || "FREE",
         },
         { status: 403 }
       );

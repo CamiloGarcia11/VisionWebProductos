@@ -5,7 +5,7 @@ import { hashPassword } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fullName, storeName, whatsapp, email, password, plan } = body;
+    const { fullName, storeName, customSlug, logoUrl, whatsapp, email, password, plan } = body;
 
     if (!fullName || !storeName || !whatsapp || !email || !password) {
       return NextResponse.json(
@@ -28,16 +28,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generar slug para la tienda
-    const slugBase = storeName
+    // Formatear y validar el slug / enlace deseado para la tienda
+    const desiredSlug = (customSlug || storeName)
       .toLowerCase()
+      .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
-    
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const slug = `${slugBase || "tienda"}-${randomSuffix}`;
+
+    const slug = desiredSlug || `tienda-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // Verificar si el enlace (slug) de la tienda ya está ocupado
+    const existingStoreSlug = await prisma.store.findUnique({
+      where: { slug },
+    });
+
+    if (existingStoreSlug) {
+      return NextResponse.json(
+        { error: `El enlace de página "${slug}" ya se encuentra reservado por otra tienda. Por favor ingresa un enlace diferente.` },
+        { status: 400 }
+      );
+    }
 
     const hashedPassword = await hashPassword(password);
+    const finalLogoUrl = logoUrl && typeof logoUrl === "string" && logoUrl.trim() !== "" ? logoUrl.trim() : null;
+    const targetPlan = plan === "PRO" ? "PRO" : plan === "EMPRENDEDOR" ? "EMPRENDEDOR" : "FREE";
+
+    // Asignar módulos según el plan seleccionado
+    const initialModules = targetPlan === "PRO" 
+      ? { whatsapp: true, gateway: true, metrics: true, inventory: true, customDomain: true }
+      : targetPlan === "EMPRENDEDOR"
+      ? { whatsapp: true, gateway: false, metrics: true, inventory: true, customDomain: false }
+      : { whatsapp: true, gateway: false, metrics: false, inventory: true, customDomain: false };
 
     // Crear usuario como INACTIVO (pendiente de aprobación por el Super Admin)
     const newUser = await prisma.user.create({
@@ -52,27 +73,22 @@ export async function POST(request: Request) {
           create: {
             storeName: storeName.trim(),
             slug: slug,
+            logoUrl: finalLogoUrl,
             whatsappNumber: whatsapp.trim(),
-            enableWhatsapp: true,
-            enableGateway: false,
+            enableWhatsapp: initialModules.whatsapp,
+            enableGateway: initialModules.gateway,
             paymentKeysJson: {
-              modulesEnabled: {
-                whatsapp: true,
-                gateway: false,
-                metrics: true,
-                inventory: true,
-                customDomain: false,
-              },
+              modulesEnabled: initialModules,
             },
           },
         },
         subscriptions: {
           create: {
-            plan: plan === "PRO" ? "PRO" : plan === "EMPRENDEDOR" ? "EMPRENDEDOR" : "FREE",
+            plan: targetPlan as any,
             status: "PAST_DUE", // Pendiente de activación por pago/acuerdo
-            amount: plan === "PRO" ? 79000 : plan === "EMPRENDEDOR" ? 39000 : 0,
+            amount: targetPlan === "PRO" ? 25000 : targetPlan === "EMPRENDEDOR" ? 20000 : 0,
             currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Periodo inicial
+            currentPeriodEnd: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 días de prueba gratis
           },
         },
       },

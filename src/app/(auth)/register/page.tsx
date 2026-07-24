@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Logo } from "@/components/shared/logo";
-import { ArrowRight, Lock, Mail, Store, Phone, User, Sparkles, AlertCircle, Clock, CheckCircle2, MessageSquare } from "lucide-react";
+import { ArrowRight, Lock, Mail, Store, Phone, User, Sparkles, AlertCircle, Clock, CheckCircle2, MessageSquare, Globe, Upload, Image as ImageIcon, X, Link as LinkIcon } from "lucide-react";
 import { ADMIN_WHATSAPP_NUMBER } from "@/lib/subscription-payment";
 
 function RegisterForm() {
@@ -14,13 +14,61 @@ function RegisterForm() {
   const [form, setForm] = useState({
     fullName: "",
     storeName: "",
+    customSlug: "",
+    logoUrl: "",
     whatsapp: "",
     email: "",
     password: "",
   });
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [slugEdited, setSlugEdited] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
+
+  const handleStoreNameChange = (val: string) => {
+    const autoSlug = val
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+    setForm((prev) => ({
+      ...prev,
+      storeName: val,
+      customSlug: slugEdited ? prev.customSlug : autoSlug,
+    }));
+  };
+
+  const handleSlugChange = (val: string) => {
+    setSlugEdited(true);
+    const cleanSlug = val
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-");
+
+    setForm((prev) => ({ ...prev, customSlug: cleanSlug }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (evt.target?.result) {
+          const result = evt.target.result as string;
+          setLogoPreview(result);
+          setForm((prev) => ({ ...prev, logoUrl: result }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setForm((prev) => ({ ...prev, logoUrl: "" }));
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +103,7 @@ function RegisterForm() {
       `👋 Hola Administrador, me acabo de registrar en VisionWeb.\n\n` +
       `👤 *Nombre:* ${form.fullName}\n` +
       `🏬 *Tienda:* ${form.storeName}\n` +
+      `🔗 *Enlace:* /${form.customSlug || "mi-tienda"}\n` +
       `📧 *Correo:* ${form.email}\n` +
       `📱 *WhatsApp:* ${form.whatsapp}\n\n` +
       `Me gustaría acordar el pago / activación de mi plan de prueba para ingresar a mi cuenta.`
@@ -70,7 +119,7 @@ function RegisterForm() {
         <h1 className="text-2xl font-black text-white mb-2">¡Registro Recibido con Éxito!</h1>
         
         <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-          Tu cuenta y tu tienda <strong className="text-white">"{form.storeName}"</strong> han quedado registradas en nuestra base de datos.
+          Tu cuenta y tu tienda <strong className="text-white">"{form.storeName}"</strong> han quedado registradas en nuestra base de datos con el enlace <span className="text-[#60A5FA] font-mono font-bold">/{form.customSlug || "mi-tienda"}</span>.
           Actualmente se encuentra en <span className="text-amber-400 font-bold">espera de aprobación</span> por el administrador.
         </p>
 
@@ -79,10 +128,10 @@ function RegisterForm() {
             <CheckCircle2 className="h-4 w-4 shrink-0" /> Registrado en Base de Datos PostgreSQL
           </div>
           <div className="flex items-center gap-2 text-slate-400">
-            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Configuración de plan de prueba asignable por Admin
+            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Enlace web reservado: /{form.customSlug || "mi-tienda"}
           </div>
           <div className="flex items-center gap-2 text-slate-400">
-            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Selección de módulos activos (WhatsApp, Pasarelas, etc.)
+            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> {logoPreview ? "Logo personalizado guardado" : "Sin logo configurado por ahora"}
           </div>
         </div>
 
@@ -113,13 +162,13 @@ function RegisterForm() {
         </div>
         <div>
           <p className="text-xs font-bold text-[#60A5FA]">Prueba de Plataforma con Configuración a Medida</p>
-          <p className="text-[11px] text-slate-400">Regístrate gratis. El administrador activará tu tiempo de prueba y módulos.</p>
+          <p className="text-[11px] text-slate-400">Regístrate gratis. Configura tu link y empieza a publicar productos.</p>
         </div>
       </div>
 
       <div className="text-center mb-6">
         <h1 className="text-2xl font-black text-white">Crear Mi Tienda Web</h1>
-        <p className="text-xs text-slate-400 mt-1">Completa tus datos para registrar tu negocio en la base de datos.</p>
+        <p className="text-xs text-slate-400 mt-1">Completa tus datos para registrar tu negocio en la plataforma.</p>
       </div>
 
       {error && (
@@ -154,10 +203,72 @@ function RegisterForm() {
               required
               placeholder="Mi Tienda Estilo"
               value={form.storeName}
-              onChange={(e) => setForm({ ...form, storeName: e.target.value })}
+              onChange={(e) => handleStoreNameChange(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-[#0052FF]"
             />
           </div>
+        </div>
+
+        {/* Enlace Personalizado de la Tienda (Slug) */}
+        <div>
+          <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span>Enlace de Tu Página Web *</span>
+            <span className="text-[10px] text-[#60A5FA] font-normal">Personalizable</span>
+          </label>
+          <div className="relative">
+            <Globe className="absolute left-3.5 top-3 h-4 w-4 text-[#0052FF]" />
+            <input
+              type="text"
+              required
+              placeholder="mi-tienda"
+              value={form.customSlug}
+              onChange={(e) => handleSlugChange(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-[#0052FF]"
+            />
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono overflow-x-auto">
+            <LinkIcon className="h-3 w-3 text-[#60A5FA] shrink-0" />
+            <span>Link: visionweb.app/<strong className="text-white">{form.customSlug || "tu-tienda"}</strong></span>
+          </p>
+        </div>
+
+        {/* Carga de Imagen de Logo (Opcional - Si no se deja sin logo) */}
+        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3.5">
+          <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-[#60A5FA]" /> Logo de Tu Tienda
+            </span>
+            <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">Opcional</span>
+          </label>
+          
+          <p className="text-[11px] text-slate-400 mb-2.5">
+            Sube el logo de tu marca. Si no tienes uno por el momento, déjalo en blanco y tu tienda se creará <strong className="text-slate-300">sin logo</strong>.
+          </p>
+
+          {logoPreview ? (
+            <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+              <div className="flex items-center gap-3">
+                <img src={logoPreview} alt="Logo Preview" className="h-10 w-10 object-contain rounded-lg bg-slate-950 border border-slate-800 p-1" />
+                <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                  Logo cargado correctamente
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveLogo}
+                className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition"
+                title="Quitar logo y dejar sin logo"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-2 border border-dashed border-slate-700 hover:border-[#0052FF] bg-slate-900/50 hover:bg-slate-900 text-slate-300 px-4 py-3 rounded-xl cursor-pointer transition text-xs font-medium">
+              <Upload className="h-4 w-4 text-[#60A5FA]" />
+              <span>Subir Imagen de Logo desde mi dispositivo</span>
+              <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+            </label>
+          )}
         </div>
 
         <div>

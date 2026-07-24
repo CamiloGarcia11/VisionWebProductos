@@ -4,7 +4,8 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "@/components/shared/logo";
-import { ArrowRight, Lock, Mail, AlertCircle } from "lucide-react";
+import { ArrowRight, Lock, Mail, AlertCircle, Clock, MessageSquare, CheckCircle2 } from "lucide-react";
+import { ADMIN_WHATSAPP_NUMBER } from "@/lib/subscription-payment";
 
 function LoginForm() {
   const router = useRouter();
@@ -15,10 +16,16 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [trialExpiredState, setTrialExpiredState] = useState<{
+    isExpired: boolean;
+    storeName?: string;
+    email?: string;
+  }>({ isExpired: false });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setTrialExpiredState({ isExpired: false });
     setLoading(true);
 
     try {
@@ -31,6 +38,13 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.trialExpired) {
+          setTrialExpiredState({
+            isExpired: true,
+            storeName: data.storeName,
+            email: email,
+          });
+        }
         throw new Error(data.error || "Error al iniciar sesión.");
       }
 
@@ -47,14 +61,65 @@ function LoginForm() {
     }
   };
 
+  // Si la prueba gratis de 15 días ha expirado
+  if (trialExpiredState.isExpired) {
+    const adminPhone = ADMIN_WHATSAPP_NUMBER.replace(/[^0-9]/g, "");
+    const waText = encodeURIComponent(
+      `👋 Hola Administrador, mis 15 días de prueba gratis en VisionWeb han finalizado.\n\n` +
+      `🏬 *Tienda:* ${trialExpiredState.storeName || "Mi Tienda"}\n` +
+      `📧 *Correo registrado:* ${trialExpiredState.email || email}\n\n` +
+      `Deseo renovar mi suscripción para continuar utilizando la plataforma y publicar productos.`
+    );
+    const whatsappUrl = `https://wa.me/${adminPhone}?text=${waText}`;
+
+    return (
+      <div className="text-center py-2">
+        <div className="h-14 w-14 bg-red-500/20 text-red-400 rounded-3xl flex items-center justify-center mx-auto mb-3 border border-red-500/30">
+          <Clock className="h-7 w-7 animate-pulse" />
+        </div>
+
+        <h1 className="text-xl font-black text-white mb-2">¡Tus 15 Días de Prueba Han Finalizado!</h1>
+        
+        <p className="text-xs text-slate-300 mb-5 leading-relaxed">
+          Los 15 días gratis de prueba para tu tienda <strong className="text-white">"{trialExpiredState.storeName || "tu negocio"}"</strong> han culminado. Tu sesión ha finalizado.
+        </p>
+
+        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left text-xs space-y-2 mb-5">
+          <p className="text-slate-300 font-bold mb-1">Para reactivar tu tienda y seguir vendiendo:</p>
+          <div className="flex items-center gap-2 text-slate-400">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Plan Emprendedor: $20.000 COP/mes (WhatsApp + Métricas)
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Plan Negocio Pro: $25.000 COP/mes (Pasarelas + Dominio)
+          </div>
+        </div>
+
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-[#25D366]/20 mb-3"
+        >
+          <MessageSquare className="h-5 w-5 fill-slate-950" /> Renovar Plan por WhatsApp con un Asesor
+        </a>
+
+        <button
+          type="button"
+          onClick={() => setTrialExpiredState({ isExpired: false })}
+          className="text-xs text-slate-400 hover:text-white transition underline mt-2"
+        >
+          Intentar ingresar con otra cuenta
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-black text-white">Iniciar Sesión</h1>
         <p className="text-xs text-slate-400 mt-2">
-          {selectedPlan === "FREE" || selectedPlan === "FREE_TRIAL"
-            ? "Accede a tu cuenta para activar tu Plan Gratis (2 Meses)"
-            : `Accede a tu cuenta para contratar el Plan ${selectedPlan}`}
+          Accede a tu cuenta de VisionWeb (Prueba gratis de 15 días)
         </p>
       </div>
 
@@ -112,7 +177,7 @@ function LoginForm() {
             href={`/register?plan=${selectedPlan}`}
             className="text-[#0052FF] font-bold hover:underline"
           >
-            Regístrate y activa 2 Meses Gratis
+            Regístrate y prueba 15 Días Gratis
           </Link>
         </p>
         <p className="text-[11px] text-slate-500">

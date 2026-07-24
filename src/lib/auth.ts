@@ -132,10 +132,36 @@ export async function getCurrentAuthUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: verified.userId },
-      include: { stores: true },
+      include: { stores: true, subscriptions: true },
     });
 
     if (!user || !user.isActive) return null;
+
+    // Verificar vencimiento de 15 días de prueba gratis para comerciantes
+    if (user.role !== "SUPER_ADMIN") {
+      const activeSub = user.subscriptions[0];
+      if (activeSub && activeSub.currentPeriodEnd) {
+        const isExpired = new Date(activeSub.currentPeriodEnd) < new Date();
+        if (isExpired) {
+          // Si los 15 días expiraron, marcar inactivo y borrar cookie de sesión
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { isActive: false },
+            });
+            await prisma.subscription.update({
+              where: { id: activeSub.id },
+              data: { status: "PAST_DUE" },
+            });
+          } catch (e) {
+            // Ignorar errores en auto-update si fallara conexion
+          }
+          removeSessionCookie();
+          return null;
+        }
+      }
+    }
+
     return user;
   } catch (error) {
     return null;

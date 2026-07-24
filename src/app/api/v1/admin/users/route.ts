@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuthUser, hashPassword } from "@/lib/auth";
+import { getModulesForPlan } from "@/lib/subscription-payment";
 
 // Helper para calcular total pagado según el plan
 function calculatePlanAmount(plan: string): number {
@@ -143,9 +144,10 @@ export async function POST(request: Request) {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const slug = `${slugBase || "tienda"}-${randomSuffix}`;
 
-    const days = trialDays ? parseInt(trialDays, 10) : 30;
+    const days = trialDays ? parseInt(trialDays, 10) : 15;
     const userActive = isActive !== undefined ? Boolean(isActive) : true;
     const targetPlan = plan || "FREE";
+    const autoModules = modules || getModulesForPlan(targetPlan);
 
     const createdUser = await prisma.user.create({
       data: {
@@ -160,16 +162,10 @@ export async function POST(request: Request) {
             storeName: storeTitle,
             slug: slug,
             whatsappNumber: phoneNumber.trim(),
-            enableWhatsapp: enableWhatsapp !== undefined ? Boolean(enableWhatsapp) : true,
-            enableGateway: enableGateway !== undefined ? Boolean(enableGateway) : false,
+            enableWhatsapp: enableWhatsapp !== undefined ? Boolean(enableWhatsapp) : autoModules.whatsapp,
+            enableGateway: enableGateway !== undefined ? Boolean(enableGateway) : autoModules.gateway,
             paymentKeysJson: {
-              modulesEnabled: modules || {
-                whatsapp: true,
-                gateway: false,
-                metrics: true,
-                inventory: true,
-                customDomain: false,
-              },
+              modulesEnabled: autoModules,
             },
           },
         },
@@ -241,7 +237,8 @@ export async function PATCH(request: Request) {
     if (action === "configure_permissions" || action === "approve_user") {
       const isNowActive = isActive !== undefined ? Boolean(isActive) : true;
       const targetPlan = plan || (user.subscriptions[0]?.plan || "FREE");
-      const days = activeDays ? parseInt(activeDays, 10) : 30;
+      const days = activeDays ? parseInt(activeDays, 10) : 15;
+      const autoModules = modules || getModulesForPlan(targetPlan);
 
       const newEndDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
@@ -278,19 +275,13 @@ export async function PATCH(request: Request) {
       const store = user.stores[0];
       if (store) {
         const existingKeys = (store.paymentKeysJson as any) || {};
-        const updatedModules = modules || {
-          whatsapp: enableWhatsapp !== undefined ? Boolean(enableWhatsapp) : store.enableWhatsapp,
-          gateway: enableGateway !== undefined ? Boolean(enableGateway) : store.enableGateway,
-          metrics: true,
-          inventory: true,
-          customDomain: false,
-        };
+        const updatedModules = modules || autoModules;
 
         await prisma.store.update({
           where: { id: store.id },
           data: {
-            enableWhatsapp: enableWhatsapp !== undefined ? Boolean(enableWhatsapp) : store.enableWhatsapp,
-            enableGateway: enableGateway !== undefined ? Boolean(enableGateway) : store.enableGateway,
+            enableWhatsapp: enableWhatsapp !== undefined ? Boolean(enableWhatsapp) : updatedModules.whatsapp,
+            enableGateway: enableGateway !== undefined ? Boolean(enableGateway) : updatedModules.gateway,
             paymentKeysJson: {
               ...existingKeys,
               modulesEnabled: updatedModules,
