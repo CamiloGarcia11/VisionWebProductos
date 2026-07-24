@@ -19,7 +19,9 @@ import {
   Check,
   Palette,
   Image as ImageIcon,
-  Star
+  Star,
+  Instagram,
+  Megaphone
 } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
 import { generateWhatsAppSaaSLink } from "@/lib/subscription-payment";
@@ -32,7 +34,28 @@ export default function LandingPage() {
     { title: "Camiseta Oversize Algodón", price: 55000, qty: 2 },
   ]);
 
+  const [testUserPhone, setTestUserPhone] = useState("");
   const demoTotal = demoCart.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+  const handleTestOrderToMyPhone = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testUserPhone.trim()) {
+      alert("Por favor ingresa tu número de WhatsApp para enviarte el pedido de prueba.");
+      return;
+    }
+    const cleanPhone = testUserPhone.replace(/[^0-9]/g, "");
+    const targetPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+
+    let msg = `🛍️ *PEDIDO DE PRUEBA EN VIVO - VISIONWEB*\n\n`;
+    demoCart.forEach((item) => {
+      msg += `• *${item.qty}x* ${item.title} - ${formatCOP(item.price * item.qty)}\n`;
+    });
+    msg += `\n💰 *Total del Pedido:* ${formatCOP(demoTotal)}\n\n`;
+    msg += `📍 *Cliente:* Tu Nombre / Demo\n`;
+    msg += `✨ *¡Así de fácil y organizado recibirás los pedidos de tus clientes directamente en tu WhatsApp!*`;
+
+    window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
 
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-[#0052FF] selection:text-white font-sans">
@@ -98,7 +121,7 @@ export default function LandingPage() {
                   Activar 1 Mes Gratis <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
-                  href="/moda-latam"
+                  href="/demo"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/80 px-7 py-4 text-base font-bold text-white transition hover:bg-slate-800 hover:border-slate-700"
                 >
                   Ver Tienda Demo
@@ -107,13 +130,14 @@ export default function LandingPage() {
             </div>
 
             {/* Hero Right Card */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+            <div id="demo" className="lg:col-span-5 flex justify-center">
+              <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden text-left">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
                   <span className="text-xs font-bold text-slate-400">Demostración en Vivo</span>
-                  <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-2.5 py-0.5 rounded-full">EN LÍNEA</span>
+                  <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-2.5 py-0.5 rounded-full">PROBAR AHORA</span>
                 </div>
-                <div className="space-y-3 mb-6">
+
+                <div className="space-y-2.5 mb-4">
                   {demoCart.map((item, idx) => (
                     <div key={idx} className="flex justify-between text-xs bg-slate-950 p-3 rounded-xl border border-slate-800">
                       <span className="text-white font-medium">{item.title} (x{item.qty})</span>
@@ -122,18 +146,35 @@ export default function LandingPage() {
                   ))}
                   <div className="pt-2 flex justify-between font-black text-sm text-white">
                     <span>Total del Carrito:</span>
-                    <span className="text-emerald-400">{formatCOP(demoTotal)}</span>
+                    <span className="text-emerald-400 font-mono">{formatCOP(demoTotal)}</span>
                   </div>
                 </div>
 
-                <a
-                  href={generateWhatsAppSaaSLink("FREE_TRIAL")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-3 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg"
-                >
-                  <MessageSquare className="h-4 w-4 fill-slate-950" /> Probar Pedido por WhatsApp
-                </a>
+                {/* Formulario de prueba en vivo para enviar al propio WhatsApp del usuario */}
+                <form onSubmit={handleTestOrderToMyPhone} className="space-y-3 pt-3 border-t border-slate-800">
+                  <label className="block text-[11px] font-bold text-slate-300">
+                    Ingresa TU número de WhatsApp para recibir este pedido de ejemplo:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="3001234567"
+                      value={testUserPhone}
+                      onChange={(e) => setTestUserPhone(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 text-xs font-mono text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#0052FF]"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black px-4 py-2.5 rounded-xl transition text-xs shadow-lg flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <MessageSquare className="h-4 w-4 fill-slate-950" /> Probar en Mi WhatsApp
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 text-center font-medium">
+                    Te redirigirá a WhatsApp con la plantilla de pedido armada para tu número.
+                  </p>
+                </form>
               </div>
             </div>
 
@@ -204,11 +245,8 @@ export default function LandingPage() {
               </a>
             </div>
 
-            {/* Plan 3: $20.000 COP (Recomendado - Logo + 2 Colores) */}
-            <div className="glass-panel rounded-3xl p-6 flex flex-col justify-between relative border-2 border-[#0052FF] shadow-[0_0_40px_rgba(0,82,255,0.25)]">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0052FF] px-3 py-0.5 text-[10px] font-black text-white uppercase tracking-wider shadow-lg">
-                MÁS POPULAR
-              </div>
+            {/* Plan 3: $20.000 COP (Logo + 2 Colores + Métricas) */}
+            <div className="glass-panel rounded-3xl p-6 flex flex-col justify-between relative border border-slate-800 hover:border-slate-700 transition">
               <div>
                 <h3 className="text-lg font-bold text-white">Negocio Pro</h3>
                 <p className="text-xs text-slate-400 mt-1">Con personalización de Marca</p>
@@ -217,45 +255,68 @@ export default function LandingPage() {
                   <span className="text-slate-400 text-xs"> COP / mes</span>
                 </div>
                 <ul className="mt-6 space-y-3 text-xs text-slate-300 font-medium">
-                  <li className="flex items-center gap-2"><ImageIcon className="h-4 w-4 text-[#60A5FA] shrink-0" /> Carga tu Logo Oficial Elegante</li>
-                  <li className="flex items-center gap-2"><Palette className="h-4 w-4 text-[#60A5FA] shrink-0" /> Elige tus 2 Colores de Marca</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Productos con Especificaciones</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Guía Paso a Paso Rápida</li>
+                  <li className="flex items-center gap-2"><ImageIcon className="h-4 w-4 text-[#60A5FA] shrink-0" /> Logo Oficial Personalizado</li>
+                  <li className="flex items-center gap-2"><Palette className="h-4 w-4 text-[#60A5FA] shrink-0" /> Elección de 2 Colores de Marca</li>
+                  <li className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-[#25D366] shrink-0" /> Métricas & Estadísticas de Ventas</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Tipografías Google Fonts de Lujo</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Pedidos por WhatsApp Ilimitados</li>
                 </ul>
               </div>
               <a
                 href={generateWhatsAppSaaSLink("PRO")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 block text-center rounded-xl glow-button py-3 font-black text-white transition text-xs shadow-xl"
+                className="mt-8 block text-center rounded-xl bg-slate-800 hover:bg-slate-700 py-3 font-bold text-white transition text-xs border border-slate-700"
               >
                 Contratar Plan ($20.000)
               </a>
             </div>
 
-            {/* Plan 4: $25.000 COP */}
-            <div className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between border border-slate-800">
+            {/* Plan 4: $25.000 COP (ÉLITE VIP - PLAN PREMIUM RECOMENDADO CON MÁXIMA LABIA) */}
+            <div className="glass-panel rounded-3xl p-6 flex flex-col justify-between relative border-2 border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-900">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 px-3 py-0.5 text-[10px] font-black text-white uppercase tracking-wider shadow-lg">
+                🌟 ÉLITE VIP - TODO INCLUIDO
+              </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Empresa Élite VIP</h3>
-                <p className="text-xs text-slate-400 mt-1">Todo incluido + Pasarelas & Dominio</p>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-amber-400" /> Empresa Élite VIP
+                </h3>
+                <p className="text-xs text-purple-300 font-bold mt-1">El plan definitivo para facturar más</p>
                 <div className="mt-5">
                   <span className="text-3xl font-black text-white">$25.000</span>
                   <span className="text-slate-400 text-xs"> COP / mes</span>
                 </div>
-                <ul className="mt-6 space-y-3 text-xs text-slate-300 font-medium">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-purple-400 shrink-0" /> Todo lo del Plan Negocio Pro</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-purple-400 shrink-0" /> Pasarela Wompi / Mercado Pago</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-purple-400 shrink-0" /> Dominio Propio (.com / .co)</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-purple-400 shrink-0" /> Soporte Prioritario VIP 24/7</li>
+                <ul className="mt-6 space-y-2.5 text-xs text-slate-200 font-medium">
+                  <li className="flex items-center gap-2 font-bold text-amber-400">
+                    <Sparkles className="h-4 w-4 shrink-0" /> Acceso Total sin Restricciones
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4 text-purple-400 shrink-0" /> Generador de Banners & Anuncios HD
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-emerald-400 shrink-0" /> Resumen Financiero (Ventas vs Gastos)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-purple-400 shrink-0" /> Descuentos Masivos a Todo en 1 Clic
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-[#60A5FA] shrink-0" /> Branding Completo (Logo + Colores)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-amber-400 shrink-0" /> Alertas Automáticas de Reposición
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" /> Soporte Prioritario VIP 24/7 Directo
+                  </li>
                 </ul>
               </div>
               <a
                 href={generateWhatsAppSaaSLink("EMPRESA")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 block text-center rounded-xl bg-slate-800 hover:bg-slate-700 py-3 font-bold text-white transition text-xs border border-slate-700"
+                className="mt-8 block text-center rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 py-3.5 font-black text-white transition text-xs shadow-xl shadow-purple-500/25 transform hover:scale-[1.02]"
               >
-                Contratar Plan VIP ($25.000)
+                Contratar Plan Élite VIP ($25.000)
               </a>
             </div>
 
@@ -265,8 +326,25 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-[#05070a] py-12 text-center text-xs text-slate-500">
-        <div className="flex justify-center mb-4">
+        <div className="flex flex-col items-center justify-center gap-4 mb-6">
           <Logo className="h-9" variant="dark" />
+
+          {/* Enlace Animado de Instagram de Alta Visibilidad */}
+          <a
+            href="https://www.instagram.com/visionwebs.co?utm_source=qr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-extrabold text-xs shadow-xl shadow-pink-500/20 hover:shadow-pink-500/40 transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/20"
+          >
+            <div className="relative">
+              <Instagram className="h-5 w-5 animate-pulse text-white" />
+            </div>
+            <div className="flex flex-col text-left leading-tight">
+              <span className="text-[9px] uppercase tracking-wider opacity-90 font-bold">Síguenos en Instagram</span>
+              <span className="font-mono text-xs font-black text-white">@visionwebs.co</span>
+            </div>
+            <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+          </a>
         </div>
         <p>© 2026 VisionWeb. Plataforma SaaS E-commerce Híbrido para Colombia & Latinoamérica.</p>
       </footer>

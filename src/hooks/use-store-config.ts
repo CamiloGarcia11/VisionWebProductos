@@ -21,6 +21,7 @@ export interface StoreConfig {
   plan: string;
   daysRemaining: number;
   initialSetupCompleted?: boolean;
+  tutorialSeen?: boolean;
 }
 
 export interface ProductItem {

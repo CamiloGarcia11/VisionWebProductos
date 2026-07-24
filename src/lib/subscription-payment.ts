@@ -37,9 +37,11 @@ export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
     priceCOP: 20000,
     trialDays: 0,
     features: [
-      "Logo y Colores de Marca Personalizados",
-      "Módulos de Métricas e Inventario Avanzado",
-      "Soporte Estándar",
+      "Logo Oficial y 2 Colores de Marca Personalizados",
+      "Módulo de Métricas y Estadísticas de Ventas",
+      "Control de Stock de Productos e Inventario",
+      "Tipografías Google Fonts de Alta Costura",
+      "Pedidos por WhatsApp Ilimitados",
     ],
   },
   EMPRESA: {
@@ -48,10 +50,13 @@ export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
     priceCOP: 25000,
     trialDays: 0,
     features: [
-      "Pasarela de Pago Directa (Wompi / MercadoPago)",
-      "Publicidad & Banners HD Gratuitos (Impulso VIP)",
-      "Resumen Financiero Mensual (Entradas vs Salidas)",
-      "Soporte Prioritario VIP 24/7",
+      "🌟 Acceso Total Ilimitado a Toda la Plataforma",
+      "📢 Generador de Banners & Anuncios Publicitarios HD para Redes",
+      "📊 Resumen Financiero Mensual (Ventas vs Gastos)",
+      "🏷️ Módulo de Descuentos Masivos en 1 Clic",
+      "🎨 Branding Total (Logo + Colores + Fuentes)",
+      "⚡ Alertas Automáticas de Reposición de Stock",
+      "💎 Soporte Prioritario VIP 24/7 Directo",
     ],
   },
 };

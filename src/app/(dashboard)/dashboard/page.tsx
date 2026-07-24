@@ -50,7 +50,8 @@ import {
   Move,
   Percent,
   RefreshCw,
-  MapPin
+  MapPin,
+  ArrowRight
 } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
 
@@ -103,6 +104,12 @@ export default function MerchantDashboard() {
       .then((data) => {
         if (data.authenticated && data.user?.stores?.[0]) {
           const s = data.user.stores[0];
+          const pKeys = (s.paymentKeysJson as any) || {};
+
+          // Determinar si ya completó la configuración inicial en PostgreSQL o local
+          const isDone = Boolean(pKeys.initialSetupCompleted) || Boolean(s.slug) || Boolean(s.logoUrl) || Boolean(globalStoreConfig.initialSetupCompleted);
+          const isTutorialSeen = Boolean(pKeys.tutorialSeen) || Boolean(globalStoreConfig.tutorialSeen);
+
           const activeStoreConfig: StoreConfig = {
             ...globalStoreConfig,
             name: data.user.fullName || globalStoreConfig.name,
@@ -111,6 +118,8 @@ export default function MerchantDashboard() {
             slug: s.slug || globalStoreConfig.slug,
             logoUrl: s.logoUrl !== undefined && s.logoUrl !== null ? s.logoUrl : globalStoreConfig.logoUrl,
             whatsapp: data.user.phoneNumber || s.whatsappNumber || globalStoreConfig.whatsapp,
+            initialSetupCompleted: isDone,
+            tutorialSeen: isTutorialSeen,
           };
           setStoreConfig(activeStoreConfig);
           saveStoreConfig(activeStoreConfig);
@@ -1631,7 +1640,7 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* MODAL DE CONFIGURACIÓN INICIAL OBLIGATORIA (PRIMER INGRESO AL DASHBOARD) */}
+        {/* MODAL DE CONFIGURACIÓN INICIAL OBLIGATORIA (SOLO PRIMERA VEZ EN LA VIDA DE LA CUENTA) */}
         {mounted && !storeConfig.initialSetupCompleted && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 selection:bg-[#0052FF]">
             <div className="bg-slate-900 border-2 border-[#0052FF]/50 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left my-8">
@@ -1643,23 +1652,40 @@ export default function MerchantDashboard() {
                 </div>
                 <div>
                   <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
-                    <AlertCircle className="h-3 w-3" /> Configuración Inicial Obligatoria
+                    <AlertCircle className="h-3 w-3" /> Configuración Inicial Única
                   </span>
                   <h2 className="text-xl font-black text-white">¡Bienvenido a Tu Dashboard!</h2>
                 </div>
               </div>
 
               <p className="text-xs text-slate-300 mb-6 leading-relaxed bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
-                Para dejar habilitada la opción de subir productos y personalizar tu catálogo, por favor confirma el <strong>enlace de tu página web</strong> y la <strong>imagen de tu logo</strong> (si no tienes logo por ahora, puedes continuar sin logo).
+                Para habilitar tu catálogo, por favor confirma el <strong>enlace de tu página web</strong> y la <strong>imagen de tu logo</strong> (si no tienes logo por ahora, puedes continuar sin logo).
               </p>
 
-              <form onSubmit={(e) => {
+              <form onSubmit={async (e) => {
                 e.preventDefault();
-                saveStoreConfig({
+                const updatedConfig = {
                   ...storeConfig,
                   initialSetupCompleted: true,
-                });
-                triggerToast("🎉 ¡Configuración inicial guardada! Ahora puedes empezar a subir tus productos.");
+                  tutorialSeen: false,
+                };
+                setStoreConfig(updatedConfig);
+                saveStoreConfig(updatedConfig);
+
+                try {
+                  await fetch("/api/v1/store/onboarding", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      slug: storeConfig.slug,
+                      logoUrl: storeConfig.logoUrl,
+                      initialSetupCompleted: true,
+                      tutorialSeen: false,
+                    }),
+                  });
+                } catch (err) {}
+
+                triggerToast("🎉 ¡Configuración guardada en tu cuenta! A continuación, mira las funciones de tu plan.");
               }} className="space-y-4">
                 
                 {/* 1. Slug de la Tienda */}
@@ -1750,14 +1776,212 @@ export default function MerchantDashboard() {
                   type="submit"
                   className="w-full bg-[#0052FF] hover:bg-[#0043D6] text-white font-black py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-xl shadow-[#0052FF]/25 mt-4"
                 >
-                  <Check className="h-5 w-5" /> Guardar Configuración Inicial y Empezar a Subir Productos
+                  <Check className="h-5 w-5" /> Guardar y Ver Funciones de Mi Plan
                 </button>
               </form>
             </div>
           </div>
         )}
 
+        {/* MODAL TUTORIAL INTERACTIVO DEL PLAN CONTRATADO */}
+        {mounted && storeConfig.initialSetupCompleted && !storeConfig.tutorialSeen && (
+          <PlanTutorialModal
+            isOpen={true}
+            plan={storeConfig.plan}
+            onClose={async () => {
+              const updatedConfig = {
+                ...storeConfig,
+                tutorialSeen: true,
+              };
+              setStoreConfig(updatedConfig);
+              saveStoreConfig(updatedConfig);
+
+              try {
+                await fetch("/api/v1/store/onboarding", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    tutorialSeen: true,
+                  }),
+                });
+              } catch (err) {}
+
+              triggerToast("🚀 ¡Bienvenido a tu panel de control!");
+            }}
+          />
+        )}
+
       </main>
+    </div>
+  );
+}
+
+{/* COMPONENTE DE TUTORIAL INTERACTIVO SEGÚN EL PLAN CONTRATADO */}
+function PlanTutorialModal({
+  isOpen,
+  plan,
+  onClose,
+}: {
+  isOpen: boolean;
+  plan: string;
+  onClose: () => void;
+}) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  if (!isOpen) return null;
+
+  const planUpper = (plan || "FREE_TRIAL").toUpperCase();
+
+  let badgeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+  let slides = [
+    {
+      icon: <Sparkles className="h-8 w-8 text-emerald-400" />,
+      tag: "1. BIENVENIDO A TU PRUEBA",
+      heading: "15 Días de Prueba Completa Gratis",
+      desc: "Tienes 15 días continuos de prueba sin costo para explorar tu catálogo, cargar productos y comprobar cómo tus clientes te compran directamente por WhatsApp.",
+    },
+    {
+      icon: <ShoppingBag className="h-8 w-8 text-[#60A5FA]" />,
+      tag: "2. MONTAJE DE PRODUCTOS",
+      heading: "Control de Stock e Inventario",
+      desc: "Sube todos tus ítems con fotos, precios de oferta y existencias. Si te quedan 2 unidades de un producto, el sistema te mostrará una alerta de stock bajo.",
+    },
+    {
+      icon: <MessageSquare className="h-8 w-8 text-[#25D366]" />,
+      tag: "3. COMPRAS POR WHATSAPP",
+      heading: "Pedidos Directos sin Comisiones",
+      desc: "Tus clientes entran a tu página web, seleccionan sus productos en el carrito y te envían el resumen detallado directo a tu número de WhatsApp.",
+    },
+  ];
+
+  if (planUpper.includes("EMPRESA") || planUpper.includes("VIP")) {
+    badgeColor = "bg-purple-500/20 text-purple-300 border-purple-500/30";
+    slides = [
+      {
+        icon: <Zap className="h-8 w-8 text-amber-400" />,
+        tag: "1. NIVEL ÉLITE VIP ACTIVADO",
+        heading: "¡Bienvenido al Plan Empresa VIP!",
+        desc: "Tu cuenta tiene activadas todas las herramientas avanzadas e ilimitadas para potenciar las ventas de tu negocio.",
+      },
+      {
+        icon: <CreditCard className="h-8 w-8 text-[#60A5FA]" />,
+        tag: "2. COBROS EN LÍNEA",
+        heading: "Pasarelas Directas (Wompi / MercadoPago)",
+        desc: "Configura tus llaves API de Wompi o MercadoPago para que tus clientes paguen con tarjetas de crédito, PSE y Nequi en tiempo real.",
+      },
+      {
+        icon: <Megaphone className="h-8 w-8 text-purple-400" />,
+        tag: "3. MARKETING DIGITAL",
+        heading: "Generador de Banners & Publicidad HD",
+        desc: "Crea automáticamente anuncios publicitarios de alta definición para promocionar tus ofertas en redes sociales.",
+      },
+      {
+        icon: <TrendingUp className="h-8 w-8 text-emerald-400" />,
+        tag: "4. CONTABILIDAD MENSUAL",
+        heading: "Resumen Financiero Entradas vs Salidas",
+        desc: "Lleva un control automatizado en tiempo real de tus Ventas (Entradas) frente a tus gastos e inventario (Salidas).",
+      },
+    ];
+  } else if (planUpper.includes("PRO") || planUpper.includes("NEGOCIO")) {
+    badgeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30";
+    slides = [
+      {
+        icon: <Palette className="h-8 w-8 text-emerald-400" />,
+        tag: "1. BRANDING PROFESIONAL",
+        heading: "¡Bienvenido a Tu Plan Negocio Pro!",
+        desc: "Personaliza tu tienda con la identidad visual única de tu marca para transmitir máxima confianza a tus clientes.",
+      },
+      {
+        icon: <ImageIcon className="h-8 w-8 text-[#60A5FA]" />,
+        tag: "2. LOGO Y COLORES",
+        heading: "Carga tu Logo y Tus 2 Colores de Marca",
+        desc: "Sube tu logo oficial y selecciona tu paleta de colores global para los botones, tarjetas y cabeceras de tu sitio.",
+      },
+      {
+        icon: <Sparkles className="h-8 w-8 text-purple-400" />,
+        tag: "3. TIPOGRAFÍAS DE LUJO",
+        heading: "Fuentes Google Fonts & Descuentos",
+        desc: "Elige entre tipografías exclusivas y aplica un % de descuento masivo a todo tu catálogo en 1 clic.",
+      },
+    ];
+  } else if (planUpper.includes("BASICO") || planUpper.includes("EMPRENDEDOR")) {
+    badgeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+    slides = [
+      {
+        icon: <ShoppingBag className="h-8 w-8 text-[#60A5FA]" />,
+        tag: "1. MÓDULO DE VENTAS",
+        heading: "¡Bienvenido a Tu Plan Emprendedor!",
+        desc: "Vende ilimitadamente por WhatsApp con control de inventario en tiempo real.",
+      },
+      {
+        icon: <TrendingUp className="h-8 w-8 text-emerald-400" />,
+        tag: "2. REPORTES & MÉTRICAS",
+        heading: "Estadísticas y Conteo de Pedidos",
+        desc: "Revisa tus métricas de rendimiento semanal y gestiona el estado de cada pedido recibido.",
+      },
+    ];
+  }
+
+  const slide = slides[currentSlide] || slides[0];
+
+  return (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-4 selection:bg-[#0052FF]">
+      <div className="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative text-center overflow-hidden">
+        <div className="absolute top-0 right-0 w-36 h-36 bg-[#0052FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-4 border ${badgeColor}`}>
+          {slide.tag}
+        </span>
+
+        <div className="h-16 w-16 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          {slide.icon}
+        </div>
+
+        <h2 className="text-xl sm:text-2xl font-black text-white mb-2">{slide.heading}</h2>
+
+        <p className="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+          {slide.desc}
+        </p>
+
+        {/* Indicadores de diapositivas */}
+        <div className="flex items-center justify-center gap-1.5 mb-6">
+          {slides.map((_, idx) => (
+            <span
+              key={idx}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === currentSlide ? "w-6 bg-[#0052FF]" : "w-2 bg-slate-800"
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800">
+          {currentSlide > 0 ? (
+            <button
+              onClick={() => setCurrentSlide(currentSlide - 1)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white border border-slate-800"
+            >
+              Anterior
+            </button>
+          ) : <div />}
+
+          {currentSlide < slides.length - 1 ? (
+            <button
+              onClick={() => setCurrentSlide(currentSlide + 1)}
+              className="bg-[#0052FF] hover:bg-[#0043D6] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-lg flex items-center gap-2"
+            >
+              Siguiente <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+            >
+              <Check className="h-4 w-4" /> ¡Empezar a Usar Mi Tienda!
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
