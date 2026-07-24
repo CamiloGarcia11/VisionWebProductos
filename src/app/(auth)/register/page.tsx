@@ -118,10 +118,21 @@ function RegisterForm() {
 
         <h1 className="text-2xl font-black text-white mb-2">¡Registro Recibido con Éxito!</h1>
         
-        <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+        <p className="text-xs text-slate-300 mb-4 leading-relaxed">
           Tu cuenta y tu tienda <strong className="text-white">"{form.storeName}"</strong> han quedado registradas en nuestra base de datos con el enlace <span className="text-[#60A5FA] font-mono font-bold">/{form.customSlug || "mi-tienda"}</span>.
           Actualmente se encuentra en <span className="text-amber-400 font-bold">espera de aprobación</span> por el administrador.
         </p>
+
+        {/* Mensaje Urgente e Importante sobre Logo y Link */}
+        <div className="mb-6 bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl p-4 text-left shadow-lg">
+          <div className="flex items-center gap-2 text-amber-400 font-black text-xs uppercase tracking-wider mb-1.5">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>⚠️ MENSAJE IMPORTANTE Y URGENTE</span>
+          </div>
+          <p className="text-[11px] text-slate-200 leading-relaxed">
+            Una vez que el administrador active tu pase e <strong>ingreses por primera vez al Dashboard</strong>, se desplegará el formulario obligatorio donde debes confirmar el <strong>Logo de tu Marca</strong> (si no tienes uno, tu tienda se creará sin logo) y verificar el <strong>Enlace personalizado de tu página web</strong> para así poder empezar a subir tus productos.
+          </p>
+        </div>
 
         <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left text-xs space-y-2 mb-6">
           <div className="flex items-center gap-2 text-emerald-400 font-bold">
@@ -131,7 +142,7 @@ function RegisterForm() {
             <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> Enlace web reservado: /{form.customSlug || "mi-tienda"}
           </div>
           <div className="flex items-center gap-2 text-slate-400">
-            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> {logoPreview ? "Logo personalizado guardado" : "Sin logo configurado por ahora"}
+            <CheckCircle2 className="h-4 w-4 text-[#0052FF] shrink-0" /> {logoPreview ? "Logo personalizado precargado" : "Opción de continuar sin logo activa"}
           </div>
         </div>
 

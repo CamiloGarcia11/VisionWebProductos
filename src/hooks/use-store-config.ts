@@ -20,6 +20,7 @@ export interface StoreConfig {
   enableGateway: boolean;
   plan: string;
   daysRemaining: number;
+  initialSetupCompleted?: boolean;
 }
 
 export interface ProductItem {
@@ -86,7 +87,8 @@ const DEFAULT_STORE_CONFIG: StoreConfig = {
   enableWhatsapp: true,
   enableGateway: false,
   plan: "EMPRESA VIP",
-  daysRemaining: 30,
+  daysRemaining: 15,
+  initialSetupCompleted: false,
 };
 
 const DEFAULT_PRODUCTS: ProductItem[] = [

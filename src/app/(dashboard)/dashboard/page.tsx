@@ -401,10 +401,10 @@ export default function MerchantDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1 text-xs font-bold">
+          <nav className="flex md:flex-col overflow-x-auto gap-2 pb-2 md:pb-0 text-xs font-bold whitespace-nowrap scrollbar-none">
             <button
               onClick={() => setActiveTab("metrics")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "metrics" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -413,7 +413,7 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("branding")}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "branding" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -424,7 +424,7 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("advertising")}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "advertising" ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -436,7 +436,7 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("products")}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "products" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -447,7 +447,7 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "orders" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -463,7 +463,7 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => setActiveTab("subscription")}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+              className={`shrink-0 md:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition ${
                 activeTab === "subscription" ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -1458,6 +1458,132 @@ export default function MerchantDashboard() {
                   <Check className="h-4 w-4" /> Sí, Guardar y Publicar
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE CONFIGURACIÓN INICIAL OBLIGATORIA (PRIMER INGRESO AL DASHBOARD) */}
+        {mounted && !storeConfig.initialSetupCompleted && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 selection:bg-[#0052FF]">
+            <div className="bg-slate-900 border-2 border-[#0052FF]/50 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left my-8">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[#0052FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-2xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-lg shadow-[#0052FF]/30">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
+                    <AlertCircle className="h-3 w-3" /> Configuración Inicial Obligatoria
+                  </span>
+                  <h2 className="text-xl font-black text-white">¡Bienvenido a Tu Dashboard!</h2>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 mb-6 leading-relaxed bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
+                Para dejar habilitada la opción de subir productos y personalizar tu catálogo, por favor confirma el <strong>enlace de tu página web</strong> y la <strong>imagen de tu logo</strong> (si no tienes logo por ahora, puedes continuar sin logo).
+              </p>
+
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                saveStoreConfig({
+                  ...storeConfig,
+                  initialSetupCompleted: true,
+                });
+                triggerToast("🎉 ¡Configuración inicial guardada! Ahora puedes empezar a subir tus productos.");
+              }} className="space-y-4">
+                
+                {/* 1. Slug de la Tienda */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+                    <LinkIcon className="h-4 w-4 text-[#60A5FA]" /> 1. Enlace de Tu Página Web *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      placeholder="mi-tienda"
+                      value={storeConfig.slug}
+                      onChange={(e) => {
+                        const clean = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-");
+                        setStoreConfig({ ...storeConfig, slug: clean });
+                      }}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-4 py-2.5 text-sm text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 font-mono">
+                    Link final: <span className="text-[#60A5FA]">visionweb.app/<strong>{storeConfig.slug || "tu-tienda"}</strong></span>
+                  </p>
+                </div>
+
+                {/* 2. Logo de la Tienda (Opcional - Si no se deja sin logo) */}
+                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                  <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <ImageIcon className="h-4 w-4 text-[#60A5FA]" /> 2. Logo de Tu Tienda
+                    </span>
+                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">Opcional</span>
+                  </label>
+                  
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Sube la imagen del logo. Si no tienes uno en este momento, haz clic en <strong className="text-white">"Continuar sin logo"</strong> y tu tienda se creará sin logo.
+                  </p>
+
+                  {storeConfig.logoUrl ? (
+                    <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <img src={storeConfig.logoUrl} alt="Logo Preview" className="h-10 w-10 object-contain rounded-lg bg-slate-950 border border-slate-800 p-1" />
+                        <span className="text-xs text-emerald-400 font-bold">Logo cargado correctamente</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStoreConfig({ ...storeConfig, logoUrl: "" })}
+                        className="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition text-xs font-bold"
+                      >
+                        Quitar y dejar sin logo
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="flex items-center justify-center gap-2 border border-dashed border-slate-700 hover:border-[#0052FF] bg-slate-900/50 hover:bg-slate-900 text-slate-300 px-4 py-3 rounded-xl cursor-pointer transition text-xs font-medium">
+                        <Upload className="h-4 w-4 text-[#60A5FA]" />
+                        <span>Subir Imagen de Logo desde mi dispositivo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (evt) => {
+                                if (evt.target?.result) {
+                                  setStoreConfig({ ...storeConfig, logoUrl: evt.target.result as string });
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setStoreConfig({ ...storeConfig, logoUrl: "" })}
+                        className="w-full text-center text-xs text-slate-400 hover:text-white py-1 transition underline"
+                      >
+                        Continuar sin logo por el momento
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#0052FF] hover:bg-[#0043D6] text-white font-black py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-xl shadow-[#0052FF]/25 mt-4"
+                >
+                  <Check className="h-5 w-5" /> Guardar Configuración Inicial y Empezar a Subir Productos
+                </button>
+              </form>
             </div>
           </div>
         )}
