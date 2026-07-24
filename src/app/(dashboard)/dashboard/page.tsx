@@ -1130,29 +1130,139 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* TAB 2: METRICAS */}
+        {/* TAB 2: METRICAS Y RESUMEN FINANCIERO MENSUAL (ENTRADAS VS SALIDAS) */}
         {activeTab === "metrics" && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase">Ventas de la Semana</span>
-                <p className="text-3xl font-black text-white mt-1">$350.000 COP</p>
-                <p className="text-xs text-emerald-400 font-bold mt-1">↑ +24% vs semana anterior</p>
+                <span className="text-xs font-bold text-slate-400 uppercase">Ventas Pagadas (Entradas)</span>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+                  {formatCOP(currentOrders.filter(o => o.status === "PAID").reduce((acc, o) => acc + o.total, 0))}
+                </p>
+                <p className="text-xs text-emerald-400 font-bold mt-1">↑ Pedidos confirmados y pagados</p>
               </div>
               <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase">Pedidos Registrados</span>
-                <p className="text-3xl font-black text-white mt-1">{currentOrders.length} Pedidos</p>
-                <p className="text-xs text-slate-400 mt-1">Directos a WhatsApp</p>
+                <span className="text-xs font-bold text-slate-400 uppercase">Ventas Pendientes</span>
+                <p className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
+                  {formatCOP(currentOrders.filter(o => o.status === "PENDING").reduce((acc, o) => acc + o.total, 0))}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{currentOrders.filter(o => o.status === "PENDING").length} órdenes por cobrar</p>
               </div>
               <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase">Productos Activos</span>
-                <p className="text-3xl font-black text-white mt-1">{currentProducts.length} Ítems</p>
-                <p className="text-xs text-slate-400 mt-1">Con inventario</p>
+                <span className="text-xs font-bold text-slate-400 uppercase">Inventario Disponible</span>
+                <p className="text-2xl sm:text-3xl font-black text-white mt-1">
+                  {currentProducts.reduce((acc, p) => acc + p.stock, 0)} Unidades
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{currentProducts.length} productos montados</p>
               </div>
               <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
                 <span className="text-xs font-bold text-slate-400 uppercase">Días Restantes</span>
-                <p className="text-3xl font-black text-[#60A5FA] mt-1">{storeConfig.daysRemaining} Días</p>
+                <p className="text-2xl sm:text-3xl font-black text-[#60A5FA] mt-1">{storeConfig.daysRemaining} Días</p>
                 <p className="text-xs text-slate-400 mt-1">Plan {storeConfig.plan}</p>
+              </div>
+            </div>
+
+            {/* MÓDULO RESUMEN FINANCIERO MENSUAL: ENTRADAS VS SALIDAS */}
+            <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
+                    📊 REPORTE DE CAJA MENSUAL
+                  </span>
+                  <h2 className="text-xl font-black text-white mt-2 flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-emerald-400" /> Resumen Financiero Mensual (Entradas vs Salidas)
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">Balance automático entre las ventas recibidas (Entradas) y las compras o costos de tu catálogo (Salidas).</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Entradas */}
+                <div className="bg-slate-950 p-5 rounded-2xl border border-emerald-500/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400">Total Entradas (Ventas)</span>
+                    <span className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <p className="text-2xl font-black text-emerald-400">
+                    +{formatCOP(currentOrders.filter(o => o.status === "PAID").reduce((acc, o) => acc + o.total, 0))}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Total recaudado por pedidos pagos en la tienda</p>
+                </div>
+
+                {/* Salidas */}
+                <div className="bg-slate-950 p-5 rounded-2xl border border-red-500/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400">Total Salidas (Compras / Stock)</span>
+                    <span className="h-3 w-3 rounded-full bg-red-400" />
+                  </div>
+                  <p className="text-2xl font-black text-red-400">
+                    -{formatCOP(currentProducts.reduce((acc, p) => acc + Math.round(p.price * 0.4 * p.stock), 0))}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Costo estimado de compras e inventario cargado</p>
+                </div>
+
+                {/* Balance Neto */}
+                <div className="bg-slate-950 p-5 rounded-2xl border border-[#0052FF]/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400">Balance Neto del Mes</span>
+                    <span className="h-3 w-3 rounded-full bg-[#0052FF]" />
+                  </div>
+                  <p className="text-2xl font-black text-[#60A5FA]">
+                    {formatCOP(
+                      currentOrders.filter(o => o.status === "PAID").reduce((acc, o) => acc + o.total, 0) -
+                      currentProducts.reduce((acc, p) => acc + Math.round(p.price * 0.4 * p.stock), 0)
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Utilidad neta estimada en caja este mes</p>
+                </div>
+              </div>
+
+              {/* Registro Desglosado de Transacciones (Entradas y Salidas) */}
+              <div>
+                <h3 className="text-sm font-bold text-white mb-3">Historial de Entradas y Salidas del Mes</h3>
+                <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold">
+                      <tr>
+                        <th className="p-3.5">Tipo</th>
+                        <th className="p-3.5">Concepto / Detalle</th>
+                        <th className="p-3.5">Fecha</th>
+                        <th className="p-3.5 text-right">Monto COP</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {currentOrders.filter(o => o.status === "PAID").map((ord) => (
+                        <tr key={ord.id} className="hover:bg-slate-900/50">
+                          <td className="p-3.5">
+                            <span className="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded text-[10px]">
+                              ENTRADA
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <strong className="text-white">Venta Pedido {ord.id}</strong> ({ord.customerName})
+                          </td>
+                          <td className="p-3.5 text-slate-400">{ord.date}</td>
+                          <td className="p-3.5 text-right font-black text-emerald-400">+{formatCOP(ord.total)}</td>
+                        </tr>
+                      ))}
+
+                      {currentProducts.slice(0, 3).map((prod) => (
+                        <tr key={prod.id} className="hover:bg-slate-900/50">
+                          <td className="p-3.5">
+                            <span className="bg-red-500/20 text-red-400 font-bold px-2 py-0.5 rounded text-[10px]">
+                              SALIDA
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <strong className="text-white">Compra Inventario</strong> ({prod.title} - {prod.stock} un.)
+                          </td>
+                          <td className="p-3.5 text-slate-400">23/07/2026</td>
+                          <td className="p-3.5 text-right font-black text-red-400">-{formatCOP(Math.round(prod.price * 0.4 * prod.stock))}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

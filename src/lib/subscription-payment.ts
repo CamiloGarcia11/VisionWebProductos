@@ -48,8 +48,9 @@ export const SAAS_PLANS: Record<string, SubscriptionPlanDetails> = {
     priceCOP: 25000,
     trialDays: 0,
     features: [
-      "Pasarela de Pago Directa (Wompi / MP)",
-      "Dominio Personalizado (.com / .co)",
+      "Pasarela de Pago Directa (Wompi / MercadoPago)",
+      "Publicidad & Banners HD Gratuitos (Impulso VIP)",
+      "Resumen Financiero Mensual (Entradas vs Salidas)",
       "Soporte Prioritario VIP 24/7",
     ],
   },
