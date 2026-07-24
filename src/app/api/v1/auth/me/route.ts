@@ -16,6 +16,7 @@ export async function GET() {
         fullName: user.fullName,
         role: user.role,
         stores: user.stores,
+        subscriptions: user.subscriptions,
       },
     });
   } catch (error: any) {

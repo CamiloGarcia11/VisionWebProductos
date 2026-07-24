@@ -84,12 +84,13 @@ const DEFAULT_STORE_CONFIG: StoreConfig = {
   backgroundColor: "#07090e",
   cardColor: "#0f172a",
   fontFamily: "Inter",
-  whatsapp: "573001234567",
+  whatsapp: "",
   enableWhatsapp: true,
   enableGateway: false,
-  plan: "EMPRESA VIP",
+  plan: "FREE_TRIAL",
   daysRemaining: 15,
   initialSetupCompleted: false,
+  tutorialSeen: false,
 };
 
 const DEFAULT_PRODUCTS: ProductItem[] = [

@@ -334,16 +334,14 @@ export default function LandingPage() {
             href="https://www.instagram.com/visionwebs.co?utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-extrabold text-xs shadow-xl shadow-pink-500/20 hover:shadow-pink-500/40 transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/20"
+            className="group inline-flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-extrabold text-xs shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/30 whitespace-nowrap max-w-full"
           >
-            <div className="relative">
-              <Instagram className="h-5 w-5 animate-pulse text-white" />
-            </div>
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-[9px] uppercase tracking-wider opacity-90 font-bold">Síguenos en Instagram</span>
+            <Instagram className="h-5 w-5 animate-pulse text-white shrink-0" />
+            <div className="flex flex-col text-left leading-tight shrink-0">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-white/90">Síguenos en Instagram</span>
               <span className="font-mono text-xs font-black text-white">@visionwebs.co</span>
             </div>
-            <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform shrink-0" />
           </a>
         </div>
         <p>© 2026 VisionWeb. Plataforma SaaS E-commerce Híbrido para Colombia & Latinoamérica.</p>

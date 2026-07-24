@@ -106,9 +106,10 @@ export default function MerchantDashboard() {
           const s = data.user.stores[0];
           const pKeys = (s.paymentKeysJson as any) || {};
 
-          // Determinar si ya completó la configuración inicial en PostgreSQL o local
-          const isDone = Boolean(pKeys.initialSetupCompleted) || Boolean(s.slug) || Boolean(s.logoUrl) || Boolean(globalStoreConfig.initialSetupCompleted);
-          const isTutorialSeen = Boolean(pKeys.tutorialSeen) || Boolean(globalStoreConfig.tutorialSeen);
+          // Determinar si ya completó la configuración inicial en PostgreSQL
+          const isDone = Boolean(pKeys.initialSetupCompleted);
+          const isTutorialSeen = Boolean(pKeys.tutorialSeen);
+          const realPlan = data.user.subscriptions?.[0]?.plan || pKeys.plan || globalStoreConfig.plan || "FREE_TRIAL";
 
           const activeStoreConfig: StoreConfig = {
             ...globalStoreConfig,
@@ -118,6 +119,7 @@ export default function MerchantDashboard() {
             slug: s.slug || globalStoreConfig.slug,
             logoUrl: s.logoUrl !== undefined && s.logoUrl !== null ? s.logoUrl : globalStoreConfig.logoUrl,
             whatsapp: data.user.phoneNumber || s.whatsappNumber || globalStoreConfig.whatsapp,
+            plan: realPlan,
             initialSetupCompleted: isDone,
             tutorialSeen: isTutorialSeen,
           };
@@ -522,21 +524,21 @@ export default function MerchantDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Panel Comerciante</span>
-            <h1 className="text-2xl md:text-3xl font-black text-white">{storeConfig.storeName}</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-white truncate max-w-xs sm:max-w-md">{storeConfig.storeName}</h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <a
               href={`/${storeConfig.slug}`}
               target="_blank"
-              className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2"
+              className="w-full sm:w-auto bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 max-w-full"
             >
-              <Eye className="h-4 w-4 text-[#60A5FA]" /> Ver Mi Tienda Pública <ExternalLink className="h-3 w-3 text-slate-500" />
+              <Eye className="h-4 w-4 text-[#60A5FA] shrink-0" /> Ver Mi Tienda Pública <ExternalLink className="h-3 w-3 text-slate-500 shrink-0" />
             </a>
           </div>
         </div>
@@ -554,7 +556,7 @@ export default function MerchantDashboard() {
                 </div>
 
                 {/* Filtro por Estado */}
-                <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold shrink-0">
+                <div className="flex items-center gap-1 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-bold shrink-0 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap">
                   <button
                     onClick={() => setOrderStatusFilter("ALL")}
                     className={`px-3 py-1.5 rounded-lg transition ${orderStatusFilter === "ALL" ? "bg-[#0052FF] text-white" : "text-slate-400 hover:text-white"}`}
@@ -740,8 +742,8 @@ export default function MerchantDashboard() {
               </div>
 
               {/* Tabla de Productos con Stock e Inventario */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
+              <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                <table className="w-full text-left text-xs text-slate-300 min-w-[650px]">
                   <thead className="bg-slate-950 text-slate-400 font-bold uppercase border-b border-slate-800">
                     <tr>
                       <th className="p-4">Producto & Foto</th>
@@ -846,7 +848,35 @@ export default function MerchantDashboard() {
         {/* TAB 1: BRANDING & DATOS DE LA TIENDA */}
         {activeTab === "branding" && (
           <div className="space-y-6">
-            <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 shadow-xl">
+            {!isProPlan && (
+              <div className="bg-slate-900 border-2 border-[#0052FF]/40 rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-[#0052FF] text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-[#0052FF]/30">
+                    <Palette className="h-6 w-6 text-[#25D366]" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-[#0052FF]/20 text-[#60A5FA] rounded-full border border-[#0052FF]/30">
+                      🔒 MÓDULO EXCLUSIVO PLAN NEGOCIO PRO ($20.000 COP) & EMPRESA VIP ($25.000 COP)
+                    </span>
+                    <h3 className="text-base font-black text-white mt-1">Logo Oficial y Colores de Marca Personalizados</h3>
+                    <p className="text-xs text-slate-300">
+                      Estás en el <strong>Plan Prueba Gratis (15 Días)</strong>. Para subir tu logo oficial y personalizar tus 2 colores de marca, actualiza a un plan de pago.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("subscription")}
+                  className="bg-[#0052FF] hover:bg-[#0043D6] text-white font-black px-5 py-3 rounded-xl text-xs shrink-0 shadow-lg shadow-[#0052FF]/30 hover:scale-105 transition"
+                >
+                  🚀 Cambiar a Plan Negocio Pro
+                </button>
+              </div>
+            )}
+
+            <div className={!isProPlan ? "opacity-50 pointer-events-none select-none blur-[0.5px]" : ""}>
+              <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 shadow-xl">
               <div className="pb-4 border-b border-slate-800 mb-6">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
                   <Palette className="h-6 w-6 text-[#0052FF]" /> Nombre de Tienda, Enlace Web, Logo & Colores
@@ -858,7 +888,7 @@ export default function MerchantDashboard() {
                 
                 {/* 1. SECCIÓN DE NOMBRE DE TIENDA Y ENLACE ÚNICO (SLUG) */}
                 <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                     <label className="block text-xs font-bold text-slate-200">1. Nombre Comercial & Enlace Único Web (URL Slug)</label>
                     <button
                       type="button"
@@ -867,7 +897,7 @@ export default function MerchantDashboard() {
                         setStoreConfig({ ...storeConfig, slug: autoSlug });
                         triggerToast(`⚡ Enlace generado: "/${autoSlug}" (Sin guiones ni espacios)`);
                       }}
-                      className="bg-blue-500/10 hover:bg-blue-500/20 text-[#60A5FA] border border-blue-500/30 px-3 py-1 rounded-xl text-[11px] font-bold transition flex items-center gap-1"
+                      className="bg-blue-500/10 hover:bg-blue-500/20 text-[#60A5FA] border border-blue-500/30 px-3 py-1 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 self-start sm:self-auto"
                     >
                       ⚡ Generar Enlace Pegado Directo (ej. "modalatam")
                     </button>
@@ -907,15 +937,15 @@ export default function MerchantDashboard() {
                   </div>
 
                   {/* Previsualización del Enlace Web de la Tienda */}
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between">
-                    <span className="text-xs text-slate-400 font-bold">Tu Dirección Web Oficial para Clientes:</span>
+                  <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 overflow-hidden">
+                    <span className="text-xs text-slate-400 font-bold shrink-0">Tu Dirección Web Oficial para Clientes:</span>
                     <a
                       href={`/${storeConfig.slug || 'tu-tienda'}`}
                       target="_blank"
-                      className="font-mono text-xs text-emerald-400 font-bold hover:underline flex items-center gap-1"
+                      className="font-mono text-xs text-emerald-400 font-bold hover:underline flex items-center gap-1 break-all truncate max-w-full"
                     >
                       https://visionweb.com/<strong className="text-emerald-300">{storeConfig.slug || 'modalatam'}</strong>
-                      <ExternalLink className="h-3 w-3 text-slate-500" />
+                      <ExternalLink className="h-3.5 w-3.5 text-slate-500 shrink-0" />
                     </a>
                   </div>
 
@@ -937,10 +967,11 @@ export default function MerchantDashboard() {
                   </div>
 
                 </div>
+
                 <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <label className="block text-xs font-bold text-slate-200">1. Logo Oficial (Local o Link URL)</label>
-                    <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+                    <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-bold self-start sm:self-auto">
                       <button
                         type="button"
                         onClick={() => setStoreConfig({ ...storeConfig, logoType: "file" })}
@@ -1164,13 +1195,42 @@ export default function MerchantDashboard() {
                 </div>
               </form>
             </div>
+            </div>
           </div>
         )}
 
         {/* TAB 2: METRICAS Y RESUMEN FINANCIERO MENSUAL (ENTRADAS VS SALIDAS) */}
         {activeTab === "metrics" && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {!isEmprendedorPlan && (
+              <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-lg shadow-emerald-500/30">
+                    <TrendingUp className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
+                      🔒 MÓDULO EXCLUSIVO PARA PLANES DE PAGO ($15.000, $20.000, $25.000 COP)
+                    </span>
+                    <h3 className="text-base font-black text-white mt-1">Métricas & Reportes de Ventas en Tiempo Real</h3>
+                    <p className="text-xs text-slate-300">
+                      Estás en el <strong>Plan Prueba Gratis (15 Días)</strong>. Pasa a un plan de pago para desbloquear el resumen de ingresos y métricas financieras.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("subscription")}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-3 rounded-xl text-xs shrink-0 shadow-lg shadow-emerald-500/30 hover:scale-105 transition"
+                >
+                  🚀 Activar Plan de Pago
+                </button>
+              </div>
+            )}
+
+            <div className={!isEmprendedorPlan ? "opacity-50 pointer-events-none select-none blur-[0.5px]" : ""}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800">
                 <span className="text-xs font-bold text-slate-400 uppercase">Ventas Pagadas (Entradas)</span>
                 <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
@@ -1301,6 +1361,7 @@ export default function MerchantDashboard() {
                   </table>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         )}
